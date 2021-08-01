@@ -89,6 +89,8 @@ export default class UnitTestClient {
 
   // Instance ----------------------------------------------------------------
 
+  // TODO 01Aug21: Look to have methods to clear down the logs automatically for test functions and others
+
   async initialiseClientAsync(): Promise<void> {
     //
     this.testResourceTagMappingList = await UnitTestClient.getResourcesByTagKeyAsync(
