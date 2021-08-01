@@ -19,6 +19,7 @@ import BucketTestClient from './BucketTestClient';
 import FunctionTestClient from './FunctionTestClient';
 import TopicTestClient from './TopicTestClient';
 import TableTestClient from './TableTestClient';
+import QueueTestClient from './QueueTestClient';
 
 dotenv.config();
 
@@ -94,9 +95,7 @@ export default class UnitTestClient {
       this.props.testResourceTagKey
     );
 
-    this.integrationTestTableName = this.getTableNameByStackId(
-      UnitTestStack.UnitTestTableId
-    );
+    this.integrationTestTableName = this.getTableNameByStackId(UnitTestStack.UnitTestTableId);
   }
 
   async initialiseTestAsync(props: TestProps): Promise<void> {
@@ -340,10 +339,21 @@ export default class UnitTestClient {
     const topicArn = this.getResourceArnByStackId(topicStackId);
 
     if (topicArn === undefined) {
-      throw new Error(`The state machine ARN could not be resolved for id: ${topicStackId}`);
+      throw new Error(`The topic ARN could not be resolved for id: ${topicStackId}`);
     }
 
     return new TopicTestClient(UnitTestClient.getRegion(), topicArn);
+  }
+
+  getQueueTestClient(queueStackId: string): QueueTestClient {
+    //
+    const queueUrl = this.getQueueUrlByStackId(queueStackId);
+
+    if (queueUrl === undefined) {
+      throw new Error(`The queue URL could not be resolved for id: ${queueStackId}`);
+    }
+
+    return new QueueTestClient(UnitTestClient.getRegion(), queueUrl);
   }
 
   getResourceArnByStackId(targetStackId: string): string | undefined {
@@ -375,6 +385,8 @@ export default class UnitTestClient {
 
   // https://docs.aws.amazon.com/service-authorization/latest/reference/reference_policies_actions-resources-contextkeys.html
   static readonly ResourceNamePatterns = {
+    // arn:${Partition}:sqs:${Region}:${Account}:${QueueName}
+    queue: new RegExp(`^arn:aws:sqs:${UnitTestClient.getRegion()}:(?<account>[0-9]+):(?<name>.*)`),
     // arn:${Partition}:s3:::${BucketName}
     bucket: /^arn:aws:s3:::(?<name>.*)/,
     // arn:${Partition}:dynamodb:${Region}:${Account}:table/${TableName}
@@ -384,6 +396,27 @@ export default class UnitTestClient {
       `^arn:aws:lambda:${UnitTestClient.getRegion()}:[0-9]+:function:(?<name>[^:]*)`
     ),
   };
+
+  getQueueUrlByStackId(targetStackId: string): string | undefined {
+    //
+    const arn = this.getResourceArnByStackId(targetStackId);
+
+    if (arn === undefined) {
+      return undefined;
+    }
+
+    const arnMatch = arn.match(UnitTestClient.ResourceNamePatterns.queue);
+
+    if (!arnMatch || !arnMatch.groups?.account || !arnMatch.groups?.name) {
+      throw new Error(`ARN did not match expected pattern: ${arn}`);
+    }
+
+    const queueUrl = `https://sqs.${UnitTestClient.getRegion()}.amazonaws.com/${
+      arnMatch.groups.account
+    }/${arnMatch.groups?.name}`;
+
+    return queueUrl;
+  }
 
   getBucketNameByStackId(targetStackId: string): string | undefined {
     const resourceName = this.getResourceNameFromArn(

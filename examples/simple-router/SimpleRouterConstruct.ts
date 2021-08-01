@@ -2,6 +2,7 @@ import * as cdk from '@aws-cdk/core';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import * as sqs from '@aws-cdk/aws-sqs';
 import * as lambda from '@aws-cdk/aws-lambda';
+import * as lambdaEventSources from '@aws-cdk/aws-lambda-event-sources';
 import * as lambdaNodejs from '@aws-cdk/aws-lambda-nodejs';
 import path from 'path';
 
@@ -26,7 +27,7 @@ export default class SimpleRouterConstruct extends cdk.Construct {
       receiveMessageWaitTime: cdk.Duration.seconds(20),
       visibilityTimeout: cdk.Duration.seconds(3),
     };
-    
+
     this.positiveOutputQueue = new sqs.Queue(
       this,
       SimpleRouterConstruct.PositiveOutputQueueId,
@@ -51,6 +52,8 @@ export default class SimpleRouterConstruct extends cdk.Construct {
     });
 
     props.inputQueue.grantConsumeMessages(simpleRouterFunction);
+    simpleRouterFunction.addEventSource(new lambdaEventSources.SqsEventSource(props.inputQueue));
+
     this.positiveOutputQueue.grantSendMessages(simpleRouterFunction);
     this.negativeOutputQueue.grantSendMessages(simpleRouterFunction);
   }
