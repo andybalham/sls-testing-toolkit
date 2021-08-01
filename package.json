@@ -1,7 +1,7 @@
 {
-  "name": "@andybalham/github-package-template",
-  "version": "2.28.0905",
-  "description": "Template package for GitHub packages",
+  "name": "@andybalham/sls-testing-toolkit",
+  "version": "1.0.0",
+  "description": "Serverless Testing Toolkit",
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
@@ -13,22 +13,25 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/andybalham/github-package-template.git"
+    "url": "git+https://github.com/andybalham/sls-testing-toolkit.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/andybalham/github-package-template/issues"
+    "url": "https://github.com/andybalham/sls-testing-toolkit/issues"
   },
-  "homepage": "https://github.com/andybalham/github-package-template#readme",
+  "homepage": "https://github.com/andybalham/sls-testing-toolkit#readme",
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.1",
+    "@types/aws-lambda": "^8.10.81",
     "@types/chai": "^4.2.21",
     "@types/mocha": "^9.0.0",
     "@types/node": "^14.14.31",
     "@typescript-eslint/eslint-plugin": "^4.28.5",
     "@typescript-eslint/parser": "^4.28.5",
+    "aws-sdk": "^2.958.0",
     "chai": "^4.3.4",
+    "esbuild": "^0.12.17",
     "eslint": "^7.32.0",
     "eslint-config-airbnb-typescript": "^12.3.1",
     "eslint-config-prettier": "^8.3.0",
@@ -47,5 +50,12 @@
     "ts-node": "^10.1.0",
     "typescript": "^4.3.5"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@aws-cdk/aws-dynamodb": "^1.116.0",
+    "@aws-cdk/aws-lambda": "^1.116.0",
+    "@aws-cdk/aws-lambda-nodejs": "^1.116.0",
+    "@aws-cdk/core": "^1.116.0",
+    "dotenv": "^10.0.0",
+    "nanoid": "^3.1.23"
+  }
 }

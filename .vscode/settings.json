@@ -6,6 +6,11 @@
   },
   "cSpell.language": "en-GB",
   "cSpell.words": [
-    "istanbuljs"
+    "TRes",
+    "esbuild",
+    "istanbuljs",
+    "nanoid",
+    "resourcegroupstaggingapi",
+    "stepfunctions"
   ]
 }
