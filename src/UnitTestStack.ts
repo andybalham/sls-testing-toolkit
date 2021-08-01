@@ -1,55 +1,49 @@
 import * as cdk from '@aws-cdk/core';
+import * as sqs from '@aws-cdk/aws-sqs';
 import * as dynamodb from '@aws-cdk/aws-dynamodb';
 import * as lambda from '@aws-cdk/aws-lambda';
+import * as lambdaEventSources from '@aws-cdk/aws-lambda-event-sources';
 import * as lambdaNodejs from '@aws-cdk/aws-lambda-nodejs';
 import path from 'path';
 
-export interface IntegrationTestStackProps {
+export interface UnitTestStackProps {
   testResourceTagKey: string;
-  integrationTestTable?: boolean;
+  unitTestTable?: boolean;
   observerIds?: string[];
   mockIds?: string[];
 }
 
-// TODO 31Jul21: Rename to UnitTestStack, UnitTestTable etc when in a separate package
-export default abstract class IntegrationTestStack extends cdk.Stack {
+export default abstract class UnitTestStack extends cdk.Stack {
   //
   readonly testResourceTagKey: string;
 
-  static readonly IntegrationTestTableId = 'IntegrationTestTable';
+  static readonly UnitTestTableId = 'UnitTestTable';
 
-  readonly integrationTestTable: dynamodb.Table;
+  readonly unitTestTable: dynamodb.Table;
 
   readonly testFunctions: Record<string, lambda.IFunction>;
 
-  constructor(scope: cdk.Construct, id: string, props: IntegrationTestStackProps) {
+  constructor(scope: cdk.Construct, id: string, props: UnitTestStackProps) {
     super(scope, id);
 
     this.testResourceTagKey = props.testResourceTagKey;
 
     if (
-      props.integrationTestTable ||
+      props.unitTestTable ||
       (props.observerIds?.length ?? 0) > 0 ||
       (props.mockIds?.length ?? 0) > 0
     ) {
       //
       // Test table
 
-      this.integrationTestTable = new dynamodb.Table(
-        this,
-        IntegrationTestStack.IntegrationTestTableId,
-        {
-          partitionKey: { name: 'PK', type: dynamodb.AttributeType.STRING },
-          sortKey: { name: 'SK', type: dynamodb.AttributeType.STRING },
-          billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-          removalPolicy: cdk.RemovalPolicy.DESTROY,
-        }
-      );
+      this.unitTestTable = new dynamodb.Table(this, UnitTestStack.UnitTestTableId, {
+        partitionKey: { name: 'PK', type: dynamodb.AttributeType.STRING },
+        sortKey: { name: 'SK', type: dynamodb.AttributeType.STRING },
+        billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+        removalPolicy: cdk.RemovalPolicy.DESTROY,
+      });
 
-      this.addTestResourceTag(
-        this.integrationTestTable,
-        IntegrationTestStack.IntegrationTestTableId
-      );
+      this.addTestResourceTag(this.unitTestTable, UnitTestStack.UnitTestTableId);
     }
 
     this.testFunctions = {};
@@ -75,9 +69,19 @@ export default abstract class IntegrationTestStack extends cdk.Stack {
     cdk.Tags.of(resource).add(this.testResourceTagKey, resourceId);
   }
 
+  addMessageConsumer(queue: sqs.IQueue, testFunctionId: string): void {
+    //
+    const negativeOutputQueueObserverFunction = this.testFunctions[testFunctionId];
+
+    queue.grantConsumeMessages(negativeOutputQueueObserverFunction);
+    negativeOutputQueueObserverFunction.addEventSource(
+      new lambdaEventSources.SqsEventSource(queue)
+    );
+  }
+
   private newObserverFunction(observerId: string): lambda.IFunction {
     //
-    if (this.integrationTestTable === undefined)
+    if (this.unitTestTable === undefined)
       throw new Error('this.integrationTestTable === undefined');
 
     const functionEntryBase = path.join(__dirname, '.');
@@ -86,17 +90,17 @@ export default abstract class IntegrationTestStack extends cdk.Stack {
       this,
       `ObserverFunction-${observerId}`,
       {
-        runtime: lambda.Runtime.NODEJS_12_X,
+        runtime: lambda.Runtime.NODEJS_14_X,
         entry: path.join(functionEntryBase, `observerFunction.ts`),
         handler: 'handler',
         environment: {
           OBSERVER_ID: observerId,
-          INTEGRATION_TEST_TABLE_NAME: this.integrationTestTable.tableName,
+          UNIT_TEST_TABLE_NAME: this.unitTestTable.tableName,
         },
       }
     );
 
-    this.integrationTestTable.grantReadWriteData(observerFunction);
+    this.unitTestTable.grantReadWriteData(observerFunction);
     return observerFunction;
   }
 
@@ -105,16 +109,16 @@ export default abstract class IntegrationTestStack extends cdk.Stack {
     const functionEntryBase = path.join(__dirname, '.');
 
     const mockFunction = new lambdaNodejs.NodejsFunction(this, `MockFunction-${mockId}`, {
-      runtime: lambda.Runtime.NODEJS_12_X,
+      runtime: lambda.Runtime.NODEJS_14_X,
       entry: path.join(functionEntryBase, `mockFunction.ts`),
       handler: 'handler',
       environment: {
         MOCK_ID: mockId,
-        INTEGRATION_TEST_TABLE_NAME: this.integrationTestTable.tableName,
+        UNIT_TEST_TABLE_NAME: this.unitTestTable.tableName,
       },
     });
 
-    this.integrationTestTable.grantReadWriteData(mockFunction);
+    this.unitTestTable.grantReadWriteData(mockFunction);
 
     return mockFunction;
   }

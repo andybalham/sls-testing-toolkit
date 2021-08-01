@@ -9,7 +9,7 @@ import dynamodb from 'aws-sdk/clients/dynamodb';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import AWS from 'aws-sdk';
 import dotenv from 'dotenv';
-import IntegrationTestStack from './IntegrationTestStack';
+import UnitTestStack from './UnitTestStack';
 import { CurrentTestItem, TestItemKey, TestItemPrefix } from './TestItem';
 import StateMachineTestClient from './StateMachineTestClient';
 import TestObservation from './TestObservation';
@@ -95,7 +95,7 @@ export default class UnitTestClient {
     );
 
     this.integrationTestTableName = this.getTableNameByStackId(
-      IntegrationTestStack.IntegrationTestTableId
+      UnitTestStack.UnitTestTableId
     );
   }
 

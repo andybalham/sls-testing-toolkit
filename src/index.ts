@@ -1,5 +1,5 @@
 import UnitTestClient from './UnitTestClient';
-import IntegrationTestStack from './IntegrationTestStack';
+import UnitTestStack from './UnitTestStack';
 import TestFunctionClient from './TestFunctionClient';
 import TestObservation from './TestObservation';
 import StateMachineTestClient from './StateMachineTestClient';
@@ -9,7 +9,7 @@ import BucketTestClient from './BucketTestClient';
 import TableTestClient from './TableTestClient';
 
 export {
-  IntegrationTestStack,
+  UnitTestStack,
   UnitTestClient,
   TestFunctionClient,
   StateMachineTestClient,

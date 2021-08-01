@@ -3,11 +3,17 @@
 import { DocumentClient } from 'aws-sdk/clients/dynamodb';
 import { nanoid } from 'nanoid';
 import MockInvocation from './MockInvocation';
-import { CurrentTestItem, InvocationTestItem, MockStateTestItem, ObservationTestItem, TestItemPrefix } from './TestItem';
+import {
+  CurrentTestItem,
+  InvocationTestItem,
+  MockStateTestItem,
+  ObservationTestItem,
+  TestItemPrefix,
+} from './TestItem';
 import TestObservation from './TestObservation';
-import { TestProps } from "./TestProps";
+import { TestProps } from './TestProps';
 
-const integrationTestTableName = process.env.INTEGRATION_TEST_TABLE_NAME;
+const unitTestTableName = process.env.UNIT_TEST_TABLE_NAME;
 
 const documentClient = new DocumentClient();
 
@@ -15,12 +21,11 @@ export default class TestFunctionClient {
   //
   async getTestPropsAsync(): Promise<TestProps> {
     //
-    if (integrationTestTableName === undefined)
-      throw new Error('integrationTestTableName === undefined');
+    if (unitTestTableName === undefined) throw new Error('unitTestTableName === undefined');
 
     const testQueryParams /*: QueryInput */ = {
       // QueryInput results in a 'Condition parameter type does not match schema type'
-      TableName: integrationTestTableName,
+      TableName: unitTestTableName,
       KeyConditionExpression: `PK = :PK`,
       ExpressionAttributeValues: {
         ':PK': 'Current',
@@ -39,8 +44,7 @@ export default class TestFunctionClient {
 
   async recordObservationAsync(observation: TestObservation): Promise<void> {
     //
-    if (integrationTestTableName === undefined)
-      throw new Error('integrationTestTableName === undefined');
+    if (unitTestTableName === undefined) throw new Error('unitTestTableName === undefined');
 
     const { testId } = await this.getTestPropsAsync();
 
@@ -54,7 +58,7 @@ export default class TestFunctionClient {
 
     await documentClient
       .put({
-        TableName: integrationTestTableName,
+        TableName: unitTestTableName,
         Item: testOutputItem,
       })
       .promise();
@@ -62,8 +66,7 @@ export default class TestFunctionClient {
 
   async recordInvocationAsync(invocation: MockInvocation): Promise<void> {
     //
-    if (integrationTestTableName === undefined)
-      throw new Error('integrationTestTableName === undefined');
+    if (unitTestTableName === undefined) throw new Error('unitTestTableName === undefined');
 
     const { testId } = await this.getTestPropsAsync();
 
@@ -77,22 +80,24 @@ export default class TestFunctionClient {
 
     await documentClient
       .put({
-        TableName: integrationTestTableName,
+        TableName: unitTestTableName,
         Item: testOutputItem,
       })
       .promise();
   }
 
-  async getMockStateAsync(mockId: string, initialState: Record<string, any>): Promise<Record<string, any>> {
+  async getMockStateAsync(
+    mockId: string,
+    initialState: Record<string, any>
+  ): Promise<Record<string, any>> {
     //
-    if (integrationTestTableName === undefined)
-      throw new Error('integrationTestTableName === undefined');
+    if (unitTestTableName === undefined) throw new Error('unitTestTableName === undefined');
 
     const { testId } = await this.getTestPropsAsync();
 
     const mockStateQueryParams /*: QueryInput */ = {
       // QueryInput results in a 'Condition parameter type does not match schema type'
-      TableName: integrationTestTableName,
+      TableName: unitTestTableName,
       KeyConditionExpression: `PK = :PK and SK = :SK`,
       ExpressionAttributeValues: {
         ':PK': testId,
@@ -116,8 +121,7 @@ export default class TestFunctionClient {
 
   async setMockStateAsync(mockId: string, state: Record<string, any>): Promise<void> {
     //
-    if (integrationTestTableName === undefined)
-      throw new Error('integrationTestTableName === undefined');
+    if (unitTestTableName === undefined) throw new Error('unitTestTableName === undefined');
 
     const { testId } = await this.getTestPropsAsync();
 
@@ -129,7 +133,7 @@ export default class TestFunctionClient {
 
     await documentClient
       .put({
-        TableName: integrationTestTableName,
+        TableName: unitTestTableName,
         Item: mockStateItem,
       })
       .promise();

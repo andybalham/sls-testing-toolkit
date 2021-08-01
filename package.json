@@ -9,7 +9,13 @@
     "lint-and-fix": "eslint ./src --ext .ts --fix",
     "build": "npm run lint && tsc",
     "test": "mocha --require ts-node/register test/**/*.ts",
-    "test-coverage": "nyc npm run test"
+    "test-coverage": "nyc npm run test",
+    "cdk-synth": "tsc && cdk synth",
+    "cdk-deploy": "tsc && cdk deploy",
+    "cdk-destroy": "tsc && cdk destroy",
+    "simple-router-cdk-synth": "tsc && cdk synth SimpleRouterTestStack",
+    "simple-router-cdk-deploy": "tsc && cdk deploy SimpleRouterTestStack",
+    "simple-router-cdk-destroy": "tsc && cdk destroy SimpleRouterTestStack"
   },
   "repository": {
     "type": "git",
@@ -53,7 +59,9 @@
   "dependencies": {
     "@aws-cdk/aws-dynamodb": "^1.116.0",
     "@aws-cdk/aws-lambda": "^1.116.0",
+    "@aws-cdk/aws-lambda-event-sources": "^1.116.0",
     "@aws-cdk/aws-lambda-nodejs": "^1.116.0",
+    "@aws-cdk/aws-sqs": "^1.116.0",
     "@aws-cdk/core": "^1.116.0",
     "dotenv": "^10.0.0",
     "nanoid": "^3.1.23"
