@@ -1,9 +1,9 @@
 import * as cdk from '@aws-cdk/core';
 import * as sqs from '@aws-cdk/aws-sqs';
 import { UnitTestStack } from '../../src';
-import SimpleRouterConstruct from './SimpleRouterConstruct';
+import SimpleMessageRouterConstruct from './SimpleMessageRouterConstruct';
 
-export default class SimpleRouterTestStack extends UnitTestStack {
+export default class SimpleMessageRouterTestStack extends UnitTestStack {
   //
   static readonly ResourceTagKey = 'SimpleRouterTestStack';
 
@@ -16,32 +16,32 @@ export default class SimpleRouterTestStack extends UnitTestStack {
   constructor(scope: cdk.Construct, id: string) {
     //
     super(scope, id, {
-      testResourceTagKey: SimpleRouterTestStack.ResourceTagKey,
+      testResourceTagKey: SimpleMessageRouterTestStack.ResourceTagKey,
       observerIds: [
-        SimpleRouterTestStack.PositiveOutputQueueObserverId,
-        SimpleRouterTestStack.NegativeOutputQueueObserverId,
+        SimpleMessageRouterTestStack.PositiveOutputQueueObserverId,
+        SimpleMessageRouterTestStack.NegativeOutputQueueObserverId,
       ],
     });
 
-    const testInputQueue = new sqs.Queue(this, SimpleRouterTestStack.TestInputQueueId, {
+    const testInputQueue = new sqs.Queue(this, SimpleMessageRouterTestStack.TestInputQueueId, {
       receiveMessageWaitTime: cdk.Duration.seconds(20),
       visibilityTimeout: cdk.Duration.seconds(3),
     });
 
-    this.addTestResourceTag(testInputQueue, SimpleRouterTestStack.TestInputQueueId);
+    this.addTestResourceTag(testInputQueue, SimpleMessageRouterTestStack.TestInputQueueId);
 
-    const sut = new SimpleRouterConstruct(this, 'SimpleRouter', {
+    const sut = new SimpleMessageRouterConstruct(this, 'SimpleRouter', {
       inputQueue: testInputQueue,
     });
 
     this.addMessageConsumer(
       sut.positiveOutputQueue,
-      SimpleRouterTestStack.PositiveOutputQueueObserverId
+      SimpleMessageRouterTestStack.PositiveOutputQueueObserverId
     );
 
     this.addMessageConsumer(
       sut.negativeOutputQueue,
-      SimpleRouterTestStack.NegativeOutputQueueObserverId
+      SimpleMessageRouterTestStack.NegativeOutputQueueObserverId
     );
   }
 }

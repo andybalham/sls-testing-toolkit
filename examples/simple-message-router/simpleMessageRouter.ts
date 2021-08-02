@@ -5,7 +5,7 @@
 import { SQSEvent } from 'aws-lambda/trigger/sqs';
 import { SQS } from 'aws-sdk';
 import { SendMessageRequest } from 'aws-sdk/clients/sqs';
-import { NumbersMessage } from './NumbersMessage';
+import { Message } from './Message';
 
 const sqs = new SQS();
 
@@ -15,7 +15,7 @@ export const handler = async (event: SQSEvent): Promise<void> => {
 
   for await (const record of event.Records) {
     //
-    const numbersMessage = JSON.parse(record.body) as NumbersMessage;
+    const numbersMessage = JSON.parse(record.body) as Message;
 
     const messageTotal = numbersMessage.values.reduce((total, value) => total + value, 0);
 

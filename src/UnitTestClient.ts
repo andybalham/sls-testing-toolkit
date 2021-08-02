@@ -41,7 +41,7 @@ export default class UnitTestClient {
 
   integrationTestTableName?: string;
 
-  testId?: string;
+  testId: string;
 
   constructor(private props: UnitTestClientProps) {}
 
@@ -100,12 +100,8 @@ export default class UnitTestClient {
     this.integrationTestTableName = this.getTableNameByStackId(UnitTestStack.UnitTestTableId);
   }
 
-  async initialiseTestAsync(props: TestProps): Promise<void> {
+  async initialiseTestAsync(props: TestProps = { testId: 'default-test-id' }): Promise<void> {
     //
-    if (!props.testId) {
-      throw new Error(`A testId must be specified`);
-    }
-
     this.testId = props.testId;
 
     if (this.integrationTestTableName !== undefined) {

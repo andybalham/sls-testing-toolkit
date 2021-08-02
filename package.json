@@ -10,12 +10,12 @@
     "build": "npm run lint && tsc",
     "test": "mocha --require ts-node/register test/**/*.ts",
     "test-coverage": "nyc npm run test",
-    "cdk-synth": "tsc && cdk synth",
-    "cdk-deploy": "tsc && cdk deploy",
-    "cdk-destroy": "tsc && cdk destroy",
-    "simple-router-cdk-synth": "tsc && cdk synth SimpleRouterTestStack",
-    "simple-router-cdk-deploy": "tsc && cdk deploy SimpleRouterTestStack",
-    "simple-router-cdk-destroy": "tsc && cdk destroy SimpleRouterTestStack"
+    "all-synth": "tsc && cdk synth",
+    "all-deploy": "tsc && cdk deploy",
+    "all-destroy": "tsc && cdk destroy",
+    "simple-message-router-synth": "tsc && cdk synth SimpleMessageRouterTestStack",
+    "simple-message-router-deploy": "tsc && cdk deploy SimpleMessageRouterTestStack",
+    "simple-message-router-destroy": "tsc && cdk destroy SimpleMessageRouterTestStack"
   },
   "repository": {
     "type": "git",
