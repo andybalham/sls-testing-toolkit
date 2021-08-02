@@ -16,28 +16,52 @@ export default class SimpleMessageRouterConstruct extends cdk.Construct {
 
   readonly positiveOutputQueue: sqs.IQueue;
 
+  static readonly PositiveOutputDLQId = 'PositiveOutputDLQ';
+
+  readonly positiveOutputDLQ: sqs.IQueue;
+
   static readonly NegativeOutputQueueId = 'NegativeOutputQueue';
 
   readonly negativeOutputQueue: sqs.IQueue;
 
+  static readonly NegativeOutputDLQId = 'NegativeOutputDLQ';
+
+  readonly negativeOutputDLQ: sqs.IQueue;
+
   constructor(scope: cdk.Construct, id: string, props: SimpleMessageRouterProps) {
     super(scope, id);
 
-    const outputQueueProps = {
+    const outputQueueProps: sqs.QueueProps = {
       receiveMessageWaitTime: cdk.Duration.seconds(20),
       visibilityTimeout: cdk.Duration.seconds(3),
     };
 
+    this.positiveOutputDLQ = new sqs.Queue(this, SimpleMessageRouterConstruct.PositiveOutputDLQId);
+
     this.positiveOutputQueue = new sqs.Queue(
       this,
       SimpleMessageRouterConstruct.PositiveOutputQueueId,
-      outputQueueProps
+      {
+        ...outputQueueProps,
+        deadLetterQueue: {
+          maxReceiveCount: 3,
+          queue: this.positiveOutputDLQ,
+        },
+      }
     );
+
+    this.negativeOutputDLQ = new sqs.Queue(this, SimpleMessageRouterConstruct.NegativeOutputDLQId);
 
     this.negativeOutputQueue = new sqs.Queue(
       this,
       SimpleMessageRouterConstruct.NegativeOutputQueueId,
-      outputQueueProps
+      {
+        ...outputQueueProps,
+        deadLetterQueue: {
+          maxReceiveCount: 3,
+          queue: this.negativeOutputDLQ,
+        },
+      }
     );
 
     const simpleMessageRouterFunction = new lambdaNodejs.NodejsFunction(

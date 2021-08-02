@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import { SQSEvent } from 'aws-lambda';
 import { expect } from 'chai';
-import { TestObservation, UnitTestClient } from '../../src';
+import { UnitTestClient } from '../../src';
+import MockInvocation from '../../src/MockInvocation';
 import QueueTestClient from '../../src/QueueTestClient';
 import { Message } from './Message';
 import SimpleMessageRouterTestStack from './SimpleMessageRouterTestStack';
@@ -42,8 +43,8 @@ describe('SimpleMessageRouter Test Suite', () => {
 
       // Await
 
-      const { observations, timedOut } = await testClient.pollTestAsync({
-        until: async (o) => o.length > 0,
+      const { invocations, timedOut } = await testClient.pollTestAsync({
+        until: async (_o, i) => i.length > 0,
         intervalSeconds: 2,
         timeoutSeconds: 12,
       });
@@ -52,35 +53,35 @@ describe('SimpleMessageRouter Test Suite', () => {
 
       expect(timedOut, 'timedOut').to.be.false;
 
-      expect(observations.length).to.equal(1);
+      expect(invocations.length).to.equal(1);
 
-      const positiveObservations = TestObservation.filterById(
-        observations,
-        SimpleMessageRouterTestStack.PositiveOutputQueueObserverId
+      const positiveInvocations = MockInvocation.filterById(
+        invocations,
+        SimpleMessageRouterTestStack.PositiveOutputQueueMockId
       );
 
-      const negativeObservations = TestObservation.filterById(
-        observations,
-        SimpleMessageRouterTestStack.NegativeOutputQueueObserverId
+      const negativeInvocations = MockInvocation.filterById(
+        invocations,
+        SimpleMessageRouterTestStack.NegativeOutputQueueMockId
       );
 
       if (theory.isExpectedPositive) {
         //
-        expect(positiveObservations.length).to.equal(1);
-        expect((positiveObservations[0].data as SQSEvent).Records.length).to.equal(1);
+        expect(positiveInvocations.length).to.equal(1);
+        expect((positiveInvocations[0].request as SQSEvent).Records.length).to.equal(1);
 
         const routedMessage = JSON.parse(
-          (positiveObservations[0].data as SQSEvent).Records[0].body
+          (positiveInvocations[0].request as SQSEvent).Records[0].body
         );
         expect(routedMessage).to.deep.equal(testMessage);
         //
       } else {
         //
-        expect(negativeObservations.length).to.equal(1);
-        expect((negativeObservations[0].data as SQSEvent).Records.length).to.equal(1);
+        expect(negativeInvocations.length).to.equal(1);
+        expect((negativeInvocations[0].request as SQSEvent).Records.length).to.equal(1);
 
         const routedMessage = JSON.parse(
-          (negativeObservations[0].data as SQSEvent).Records[0].body
+          (negativeInvocations[0].request as SQSEvent).Records[0].body
         );
         expect(routedMessage).to.deep.equal(testMessage);
       }

@@ -9,17 +9,25 @@ export default class SimpleMessageRouterTestStack extends UnitTestStack {
 
   static readonly TestInputQueueId = 'TestInputQueue';
 
-  static readonly PositiveOutputQueueObserverId = 'PositiveOutputQueueObserverFunction';
+  static readonly PositiveOutputQueueMockId = 'PositiveOutputQueueMockFunction';
 
-  static readonly NegativeOutputQueueObserverId = 'NegativeOutputQueueObserverFunction';
+  static readonly PositiveOutputDLQObserverId = 'PositiveOutputDLQObserverFunction';
+
+  static readonly NegativeOutputQueueMockId = 'NegativeOutputQueueMockFunction';
+
+  static readonly NegativeOutputDLQObserverId = 'NegativeOutputDLQObserverFunction';
 
   constructor(scope: cdk.Construct, id: string) {
     //
     super(scope, id, {
       testResourceTagKey: SimpleMessageRouterTestStack.ResourceTagKey,
       observerIds: [
-        SimpleMessageRouterTestStack.PositiveOutputQueueObserverId,
-        SimpleMessageRouterTestStack.NegativeOutputQueueObserverId,
+        SimpleMessageRouterTestStack.PositiveOutputDLQObserverId,
+        SimpleMessageRouterTestStack.NegativeOutputDLQObserverId,
+      ],
+      mockIds: [
+        SimpleMessageRouterTestStack.PositiveOutputQueueMockId,
+        SimpleMessageRouterTestStack.NegativeOutputQueueMockId,
       ],
     });
 
@@ -36,12 +44,22 @@ export default class SimpleMessageRouterTestStack extends UnitTestStack {
 
     this.addMessageConsumer(
       sut.positiveOutputQueue,
-      SimpleMessageRouterTestStack.PositiveOutputQueueObserverId
+      SimpleMessageRouterTestStack.PositiveOutputQueueMockId
+    );
+
+    this.addMessageConsumer(
+      sut.positiveOutputDLQ,
+      SimpleMessageRouterTestStack.PositiveOutputDLQObserverId
     );
 
     this.addMessageConsumer(
       sut.negativeOutputQueue,
-      SimpleMessageRouterTestStack.NegativeOutputQueueObserverId
+      SimpleMessageRouterTestStack.NegativeOutputQueueMockId
+    );
+
+    this.addMessageConsumer(
+      sut.negativeOutputDLQ,
+      SimpleMessageRouterTestStack.NegativeOutputDLQObserverId
     );
   }
 }

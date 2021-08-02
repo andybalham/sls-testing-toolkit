@@ -14,10 +14,6 @@ export const handler = async (
 
   if (mockId === undefined) throw new Error('mockId === undefined');
 
-  const { mocks } = await testFunctionClient.getTestPropsAsync();
-
-  if (mocks === undefined) throw new Error('inputs === undefined');
-
   const state = (await testFunctionClient.getMockStateAsync(mockId, {
     invocationCount: 0,
   })) as { invocationCount: number };
@@ -31,6 +27,13 @@ export const handler = async (
   state.invocationCount += 1;
 
   await testFunctionClient.setMockStateAsync(mockId, state);
+
+  const { mocks } = await testFunctionClient.getTestPropsAsync();
+
+  if (mocks === undefined) {
+    console.log(`No mock exchanges defined, so returning undefined`);
+    return undefined;
+  }
 
   const mockExchanges = mocks[mockId];
 
