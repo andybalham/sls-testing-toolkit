@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import { SQSEvent } from 'aws-lambda';
 import { expect } from 'chai';
-import { UnitTestClient } from '../../src';
+import { TestObservation, UnitTestClient } from '../../src';
 import MockInvocation from '../../src/MockInvocation';
 import QueueTestClient from '../../src/QueueTestClient';
 import { Message } from './Message';
@@ -86,5 +86,78 @@ describe('SimpleMessageRouter Test Suite', () => {
         expect(routedMessage).to.deep.equal(testMessage);
       }
     });
+  });
+
+  it('routes to DLQ', async () => {
+    // Arrange
+    await testClient.initialiseTestAsync({
+      testId: 'routes-to-dlq',
+      mocks: {
+        [SimpleMessageRouterTestStack.PositiveOutputQueueMockId]: [
+          { error: 'Positive error', repeat: 3 },
+        ],
+      },
+    });
+
+    const testMessage: Message = {
+      values: [],
+    };
+
+    // Act
+
+    await testInputQueue.sendMessageAsync(testMessage);
+
+    // Await
+
+    const { observations, timedOut } = await testClient.pollTestAsync({
+      until: async (o) => o.length > 0,
+      intervalSeconds: 2,
+      timeoutSeconds: 12,
+    });
+
+    // Assert
+
+    expect(timedOut, 'timedOut').to.be.false;
+
+    const positiveDLQObservations = TestObservation.filterById(
+      observations,
+      SimpleMessageRouterTestStack.PositiveOutputDLQObserverId
+    );
+
+    expect(positiveDLQObservations.length).to.equal(1);
+  });
+
+  it('retries', async () => {
+    // Arrange
+    await testClient.initialiseTestAsync({
+      testId: 'routes-to-dlq',
+      mocks: {
+        [SimpleMessageRouterTestStack.PositiveOutputQueueMockId]: [
+          { error: 'Positive error', repeat: 2 },
+        ],
+      },
+    });
+
+    const testMessage: Message = {
+      values: [],
+    };
+
+    // Act
+
+    await testInputQueue.sendMessageAsync(testMessage);
+
+    // Await
+
+    const { invocations, timedOut } = await testClient.pollTestAsync({
+      until: async (_o, i) => i.length > 2,
+      intervalSeconds: 2,
+      timeoutSeconds: 16,
+    });
+
+    // Assert
+
+    expect(timedOut, 'timedOut').to.be.false;
+
+    expect(invocations.length).to.equal(3);
   });
 });

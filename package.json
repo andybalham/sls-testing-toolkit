@@ -12,7 +12,7 @@
     "test-coverage": "nyc npm run test",
     "all-synth": "tsc && cdk synth",
     "all-deploy": "tsc && cdk deploy",
-    "all-destroy": "tsc && cdk destroy",
+    "all-destroy": "tsc && cdk destroy --all",
     "simple-event-router-synth": "tsc && cdk synth SimpleEventRouterTestStack",
     "simple-event-router-deploy": "tsc && cdk deploy SimpleEventRouterTestStack",
     "simple-event-router-destroy": "tsc && cdk destroy SimpleEventRouterTestStack",
