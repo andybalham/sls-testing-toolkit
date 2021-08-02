@@ -1,5 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import * as sqs from '@aws-cdk/aws-sqs';
+import * as sns from '@aws-cdk/aws-sns';
+import * as snsSubs from '@aws-cdk/aws-sns-subscriptions';
 import * as dynamodb from '@aws-cdk/aws-dynamodb';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as lambdaEventSources from '@aws-cdk/aws-lambda-event-sources';
@@ -71,12 +73,17 @@ export default abstract class UnitTestStack extends cdk.Stack {
 
   addMessageConsumer(queue: sqs.IQueue, testFunctionId: string): void {
     //
-    const negativeOutputQueueObserverFunction = this.testFunctions[testFunctionId];
+    const queueObserverFunction = this.testFunctions[testFunctionId];
 
-    queue.grantConsumeMessages(negativeOutputQueueObserverFunction);
-    negativeOutputQueueObserverFunction.addEventSource(
-      new lambdaEventSources.SqsEventSource(queue)
-    );
+    queue.grantConsumeMessages(queueObserverFunction);
+    queueObserverFunction.addEventSource(new lambdaEventSources.SqsEventSource(queue));
+  }
+
+  addEventSubscriber(topic: sns.ITopic, testFunctionId: string): void {
+    //
+    const topicObserverFunction = this.testFunctions[testFunctionId];
+
+    topic.addSubscription(new snsSubs.LambdaSubscription(topicObserverFunction));
   }
 
   private newObserverFunction(observerId: string): lambda.IFunction {

@@ -1,22 +1,22 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
-import { SQSEvent } from 'aws-lambda';
+import { SNSEvent } from 'aws-lambda';
 import { expect } from 'chai';
 import { TestObservation, UnitTestClient } from '../../src';
-import QueueTestClient from '../../src/QueueTestClient';
-import { Message } from './Message';
-import SimpleMessageRouterTestStack from './SimpleMessageRouterTestStack';
+import TopicTestClient from '../../src/TopicTestClient';
+import { Event } from './Event';
+import SimpleEventRouterTestStack from './SimpleEventRouterTestStack';
 
-describe('SimpleMessageRouter Test Suite', () => {
+describe('SimpleEventRouter Test Suite', () => {
   //
-  let testInputQueue: QueueTestClient;
+  let testInputTopic: TopicTestClient;
 
   const testClient = new UnitTestClient({
-    testResourceTagKey: SimpleMessageRouterTestStack.ResourceTagKey,
+    testResourceTagKey: SimpleEventRouterTestStack.ResourceTagKey,
   });
 
   before(async () => {
     await testClient.initialiseClientAsync();
-    testInputQueue = testClient.getQueueTestClient(SimpleMessageRouterTestStack.TestInputQueueId);
+    testInputTopic = testClient.getTopicTestClient(SimpleEventRouterTestStack.TestInputTopicId);
   });
 
   beforeEach(async () => {
@@ -32,13 +32,13 @@ describe('SimpleMessageRouter Test Suite', () => {
     it(`Routes as expected: ${JSON.stringify(theory)}`, async () => {
       // Arrange
 
-      const testMessage: Message = {
+      const testEvent: Event = {
         values: theory.values,
       };
 
       // Act
 
-      await testInputQueue.sendMessageAsync(testMessage);
+      await testInputTopic.publishEventAsync(testEvent);
 
       // Await
 
@@ -56,33 +56,33 @@ describe('SimpleMessageRouter Test Suite', () => {
 
       const positiveObservations = TestObservation.filterById(
         observations,
-        SimpleMessageRouterTestStack.PositiveOutputQueueObserverId
+        SimpleEventRouterTestStack.PositiveOutputTopicObserverId
       );
 
       const negativeObservations = TestObservation.filterById(
         observations,
-        SimpleMessageRouterTestStack.NegativeOutputQueueObserverId
+        SimpleEventRouterTestStack.NegativeOutputTopicObserverId
       );
 
       if (theory.isExpectedPositive) {
         //
         expect(positiveObservations.length).to.equal(1);
-        expect((positiveObservations[0].data as SQSEvent).Records.length).to.equal(1);
+        expect((positiveObservations[0].data as SNSEvent).Records.length).to.equal(1);
 
-        const routedMessage = JSON.parse(
-          (positiveObservations[0].data as SQSEvent).Records[0].body
+        const routedEvent = JSON.parse(
+          (positiveObservations[0].data as SNSEvent).Records[0].Sns.Message
         );
-        expect(routedMessage).to.deep.equal(testMessage);
+        expect(routedEvent).to.deep.equal(testEvent);
         //
       } else {
         //
         expect(negativeObservations.length).to.equal(1);
-        expect((negativeObservations[0].data as SQSEvent).Records.length).to.equal(1);
+        expect((negativeObservations[0].data as SNSEvent).Records.length).to.equal(1);
 
-        const routedMessage = JSON.parse(
-          (negativeObservations[0].data as SQSEvent).Records[0].body
+        const routedEvent = JSON.parse(
+          (negativeObservations[0].data as SNSEvent).Records[0].Sns.Message
         );
-        expect(routedMessage).to.deep.equal(testMessage);
+        expect(routedEvent).to.deep.equal(testEvent);
       }
     });
   });

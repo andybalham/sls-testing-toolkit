@@ -11,7 +11,7 @@ export default class TopicTestClient {
     this.sns = new AWS.SNS({ region });
   }
 
-  async publishMessageAsync(
+  async publishEventAsync(
     message: Record<string, any>,
     messageAttributes?: sns.MessageAttributeMap
   ): Promise<void> {

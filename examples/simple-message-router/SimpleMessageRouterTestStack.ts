@@ -30,7 +30,7 @@ export default class SimpleMessageRouterTestStack extends UnitTestStack {
 
     this.addTestResourceTag(testInputQueue, SimpleMessageRouterTestStack.TestInputQueueId);
 
-    const sut = new SimpleMessageRouterConstruct(this, 'SimpleRouter', {
+    const sut = new SimpleMessageRouterConstruct(this, 'SimpleMessageRouter', {
       inputQueue: testInputQueue,
     });
 
