@@ -4,19 +4,19 @@ import { expect } from 'chai';
 import { TestObservation, UnitTestClient } from '../../src';
 import TopicTestClient from '../../src/TopicTestClient';
 import { Event } from './Event';
-import SimpleEventRouterTestStack from './SimpleEventRouterTestStack';
+import TestStack from './SimpleEventRouterTestStack';
 
 describe('SimpleEventRouter Test Suite', () => {
   //
   let testInputTopic: TopicTestClient;
 
   const testClient = new UnitTestClient({
-    testResourceTagKey: SimpleEventRouterTestStack.ResourceTagKey,
+    testResourceTagKey: TestStack.ResourceTagKey,
   });
 
   before(async () => {
     await testClient.initialiseClientAsync();
-    testInputTopic = testClient.getTopicTestClient(SimpleEventRouterTestStack.TestInputTopicId);
+    testInputTopic = testClient.getTopicTestClient(TestStack.TestInputTopicId);
   });
 
   beforeEach(async () => {
@@ -56,18 +56,18 @@ describe('SimpleEventRouter Test Suite', () => {
 
       const positiveObservations = TestObservation.filterById(
         observations,
-        SimpleEventRouterTestStack.PositiveOutputTopicObserverId
+        TestStack.PositiveOutputTopicObserverId
       );
 
       const negativeObservations = TestObservation.filterById(
         observations,
-        SimpleEventRouterTestStack.NegativeOutputTopicObserverId
+        TestStack.NegativeOutputTopicObserverId
       );
 
       if (theory.isExpectedPositive) {
         //
-        expect(positiveObservations.length).to.equal(1);
-        expect((positiveObservations[0].data as SNSEvent).Records.length).to.equal(1);
+        expect(positiveObservations.length).to.be.greaterThan(0);
+        expect(negativeObservations.length).to.equal(0);
 
         const routedEvent = JSON.parse(
           (positiveObservations[0].data as SNSEvent).Records[0].Sns.Message
@@ -76,8 +76,8 @@ describe('SimpleEventRouter Test Suite', () => {
         //
       } else {
         //
-        expect(negativeObservations.length).to.equal(1);
-        expect((negativeObservations[0].data as SNSEvent).Records.length).to.equal(1);
+        expect(positiveObservations.length).to.equal(0);
+        expect(negativeObservations.length).to.be.greaterThan(0);
 
         const routedEvent = JSON.parse(
           (negativeObservations[0].data as SNSEvent).Records[0].Sns.Message
