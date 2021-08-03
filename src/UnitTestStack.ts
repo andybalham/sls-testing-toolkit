@@ -89,7 +89,7 @@ export default abstract class UnitTestStack extends cdk.Stack {
   private newObserverFunction(observerId: string): lambda.IFunction {
     //
     if (this.unitTestTable === undefined)
-      throw new Error('this.integrationTestTable === undefined');
+      throw new Error('this.unitTestTable === undefined');
 
     const functionEntryBase = path.join(__dirname, '.');
 

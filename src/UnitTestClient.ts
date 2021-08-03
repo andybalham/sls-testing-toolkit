@@ -39,7 +39,7 @@ export default class UnitTestClient {
 
   testResourceTagMappingList: ResourceTagMappingList;
 
-  integrationTestTableName?: string;
+  unitTestTableName?: string;
 
   testId: string;
 
@@ -97,14 +97,14 @@ export default class UnitTestClient {
       this.props.testResourceTagKey
     );
 
-    this.integrationTestTableName = this.getTableNameByStackId(UnitTestStack.UnitTestTableId);
+    this.unitTestTableName = this.getTableNameByStackId(UnitTestStack.UnitTestTableId);
   }
 
   async initialiseTestAsync(props: TestProps = { testId: 'default-test-id' }): Promise<void> {
     //
     this.testId = props.testId;
 
-    if (this.integrationTestTableName !== undefined) {
+    if (this.unitTestTableName !== undefined) {
       //
       // Clear down all data related to the test
 
@@ -115,7 +115,7 @@ export default class UnitTestClient {
       do {
         const testQueryParams /*: QueryInput */ = {
           // QueryInput results in a 'Condition parameter type does not match schema type'
-          TableName: this.integrationTestTableName,
+          TableName: this.unitTestTableName,
           KeyConditionExpression: `PK = :PK`,
           ExpressionAttributeValues: {
             ':PK': this.testId,
@@ -140,7 +140,7 @@ export default class UnitTestClient {
         }));
 
         await UnitTestClient.db
-          .batchWrite({ RequestItems: { [this.integrationTestTableName]: deleteRequests } })
+          .batchWrite({ RequestItems: { [this.unitTestTableName]: deleteRequests } })
           .promise();
       }
 
@@ -156,7 +156,7 @@ export default class UnitTestClient {
 
       await UnitTestClient.db
         .put({
-          TableName: this.integrationTestTableName,
+          TableName: this.unitTestTableName,
           Item: currentTestItem,
         })
         .promise();
@@ -208,7 +208,7 @@ export default class UnitTestClient {
     //
     let allObservations = new Array<TestObservation>();
 
-    if (this.integrationTestTableName === undefined) {
+    if (this.unitTestTableName === undefined) {
       return allObservations;
     }
 
@@ -217,7 +217,7 @@ export default class UnitTestClient {
     do {
       const queryObservationsParams /*: QueryInput */ = {
         // QueryInput results in a 'Condition parameter type does not match schema type'
-        TableName: this.integrationTestTableName,
+        TableName: this.unitTestTableName,
         KeyConditionExpression: `PK = :PK and begins_with(SK, :SKPrefix)`,
         ExpressionAttributeValues: {
           ':PK': this.testId,
@@ -252,7 +252,7 @@ export default class UnitTestClient {
     //
     let allInvocations = new Array<MockInvocation>();
 
-    if (this.integrationTestTableName === undefined) {
+    if (this.unitTestTableName === undefined) {
       return allInvocations;
     }
 
@@ -261,7 +261,7 @@ export default class UnitTestClient {
     do {
       const queryInvocationsParams /*: QueryInput */ = {
         // QueryInput results in a 'Condition parameter type does not match schema type'
-        TableName: this.integrationTestTableName,
+        TableName: this.unitTestTableName,
         KeyConditionExpression: `PK = :PK and begins_with(SK, :SKPrefix)`,
         ExpressionAttributeValues: {
           ':PK': this.testId,

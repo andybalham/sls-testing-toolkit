@@ -12,19 +12,11 @@ export interface SimpleMessageRouterProps {
 
 export default class SimpleMessageRouterConstruct extends cdk.Construct {
   //
-  static readonly PositiveOutputQueueId = 'PositiveOutputQueue';
-
   readonly positiveOutputQueue: sqs.IQueue;
-
-  static readonly PositiveOutputDLQId = 'PositiveOutputDLQ';
 
   readonly positiveOutputDLQ: sqs.IQueue;
 
-  static readonly NegativeOutputQueueId = 'NegativeOutputQueue';
-
   readonly negativeOutputQueue: sqs.IQueue;
-
-  static readonly NegativeOutputDLQId = 'NegativeOutputDLQ';
 
   readonly negativeOutputDLQ: sqs.IQueue;
 
@@ -36,33 +28,25 @@ export default class SimpleMessageRouterConstruct extends cdk.Construct {
       visibilityTimeout: cdk.Duration.seconds(3),
     };
 
-    this.positiveOutputDLQ = new sqs.Queue(this, SimpleMessageRouterConstruct.PositiveOutputDLQId);
+    this.positiveOutputDLQ = new sqs.Queue(this, 'PositiveOutputDLQ');
 
-    this.positiveOutputQueue = new sqs.Queue(
-      this,
-      SimpleMessageRouterConstruct.PositiveOutputQueueId,
-      {
-        ...outputQueueProps,
-        deadLetterQueue: {          
-          maxReceiveCount: 3,
-          queue: this.positiveOutputDLQ,
-        },
-      }
-    );
+    this.positiveOutputQueue = new sqs.Queue(this, 'PositiveOutputQueue', {
+      ...outputQueueProps,
+      deadLetterQueue: {
+        maxReceiveCount: 3,
+        queue: this.positiveOutputDLQ,
+      },
+    });
 
-    this.negativeOutputDLQ = new sqs.Queue(this, SimpleMessageRouterConstruct.NegativeOutputDLQId);
+    this.negativeOutputDLQ = new sqs.Queue(this, 'NegativeOutputDLQ');
 
-    this.negativeOutputQueue = new sqs.Queue(
-      this,
-      SimpleMessageRouterConstruct.NegativeOutputQueueId,
-      {
-        ...outputQueueProps,
-        deadLetterQueue: {
-          maxReceiveCount: 2,
-          queue: this.negativeOutputDLQ,
-        },
-      }
-    );
+    this.negativeOutputQueue = new sqs.Queue(this, 'NegativeOutputQueue', {
+      ...outputQueueProps,
+      deadLetterQueue: {
+        maxReceiveCount: 2,
+        queue: this.negativeOutputDLQ,
+      },
+    });
 
     const simpleMessageRouterFunction = new lambdaNodejs.NodejsFunction(
       scope,

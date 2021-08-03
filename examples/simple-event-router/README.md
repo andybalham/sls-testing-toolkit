@@ -86,6 +86,12 @@ The stack can be deployed using the script `npm run simple-event-router-deploy`.
 
 For the unit tests we will be using the [Mocha](https://mochajs.org/) testing framework and the [Chai](https://www.chaijs.com/guide) assertion library. The approach doesn't use anything specific to these, so it should be still viable if other frameworks and libraries are used.
 
+Note, the `sls-testing-toolkit` requires that there is a `.env` file with an entry for `AWS_REGION`, e.g.:
+
+```
+AWS_REGION=eu-west-2
+```
+
 The unit tests interact with the deployed resources via a `UnitTestClient` instance. This is instantiated with the `testResourceTagKey` and initialised with a call to `initialiseClientAsync`. Once initialised, a call to `getTopicTestClient` returns a client that can be used to publish events to the topic.
 
 ```TypeScript
