@@ -28,7 +28,7 @@ export const handler = async (
 
   await testFunctionClient.setMockStateAsync(mockId, state);
 
-  const { mocks } = await testFunctionClient.getTestPropsAsync();
+  const { mockResponses: mocks } = await testFunctionClient.getTestPropsAsync();
 
   if (mocks === undefined) {
     console.log(`No mock exchanges defined, so returning undefined`);
@@ -74,7 +74,7 @@ export const handler = async (
 
   const mockExchange = mockExchanges[mockExchangeIndex];
 
-  const { error, response } = mockExchange;
+  const { error, payload: response } = mockExchange;
 
   if (error) {
     throw new Error(error);

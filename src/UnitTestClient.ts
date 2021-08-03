@@ -168,7 +168,7 @@ export default class UnitTestClient {
     intervalSeconds,
     timeoutSeconds,
   }: {
-    until: (observations: TestObservation[], invocations: MockInvocation[]) => Promise<boolean>;
+    until: ({ o, i }: { o: TestObservation[]; i: MockInvocation[] }) => Promise<boolean>;
     intervalSeconds: number;
     timeoutSeconds: number;
   }): Promise<{
@@ -185,7 +185,7 @@ export default class UnitTestClient {
     let invocations = new Array<MockInvocation>();
 
     // eslint-disable-next-line no-await-in-loop
-    while (!timedOut() && !(await until(observations, invocations))) {
+    while (!timedOut() && !(await until({ o: observations, i: invocations }))) {
       //
       // eslint-disable-next-line no-await-in-loop
       await UnitTestClient.sleepAsync(intervalSeconds);
@@ -198,7 +198,7 @@ export default class UnitTestClient {
     }
 
     return {
-      timedOut: !(await until(observations, invocations)),
+      timedOut: !(await until({ o: observations, i: invocations })),
       observations,
       invocations,
     };

@@ -43,7 +43,7 @@ describe('SimpleEventRouter Test Suite', () => {
       // Await
 
       const { observations, timedOut } = await testClient.pollTestAsync({
-        until: async (o) => o.length > 0,
+        until: async ({ o }) => o.length > 0,
         intervalSeconds: 2,
         timeoutSeconds: 12,
       });

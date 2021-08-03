@@ -44,7 +44,7 @@ export default class SimpleMessageRouterConstruct extends cdk.Construct {
       {
         ...outputQueueProps,
         deadLetterQueue: {          
-          maxReceiveCount: 2,
+          maxReceiveCount: 3,
           queue: this.positiveOutputDLQ,
         },
       }

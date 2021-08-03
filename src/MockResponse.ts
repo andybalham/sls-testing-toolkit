@@ -1,5 +1,5 @@
-export interface MockExchange {
-  response?: any;
+export interface MockResponse {
+  payload?: any;
   error?: string;
   repeat?: 'FOREVER' | number;
 }

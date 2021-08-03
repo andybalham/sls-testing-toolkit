@@ -1,7 +1,7 @@
-import { MockExchange } from './MockExchange';
+import { MockResponse } from './MockResponse';
 
 export interface TestProps {
   testId: string;
   inputs?: Record<string, any>;
-  mocks?: Record<string, MockExchange[]>;
+  mockResponses?: Record<string, MockResponse[]>;
 }
