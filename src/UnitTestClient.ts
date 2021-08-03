@@ -20,11 +20,13 @@ import FunctionTestClient from './FunctionTestClient';
 import TopicTestClient from './TopicTestClient';
 import TableTestClient from './TableTestClient';
 import QueueTestClient from './QueueTestClient';
+import { deleteAllLogs } from './cloudwatch';
 
 dotenv.config();
 
 export interface UnitTestClientProps {
   testResourceTagKey: string;
+  keepLogs?: boolean;
 }
 
 export default class UnitTestClient {
@@ -98,6 +100,19 @@ export default class UnitTestClient {
     );
 
     this.unitTestTableName = this.getTableNameByStackId(UnitTestStack.UnitTestTableId);
+
+    const testFunctionNames = this.testResourceTagMappingList
+      .filter((m) => m.ResourceARN?.match(UnitTestClient.ResourceNamePatterns.function))
+      .map((m) => m.ResourceARN?.match(UnitTestClient.ResourceNamePatterns.function)?.groups?.name);
+
+    if (!this.props.keepLogs) {
+      // eslint-disable-next-line no-restricted-syntax
+      for await (const testFunctionName of testFunctionNames) {
+        if (testFunctionName) {
+          await deleteAllLogs(UnitTestClient.getRegion(), testFunctionName);
+        }
+      }
+    }
   }
 
   async initialiseTestAsync(props: TestProps = { testId: 'default-test-id' }): Promise<void> {

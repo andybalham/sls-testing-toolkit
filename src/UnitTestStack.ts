@@ -88,8 +88,7 @@ export default abstract class UnitTestStack extends cdk.Stack {
 
   private newObserverFunction(observerId: string): lambda.IFunction {
     //
-    if (this.unitTestTable === undefined)
-      throw new Error('this.unitTestTable === undefined');
+    if (this.unitTestTable === undefined) throw new Error('this.unitTestTable === undefined');
 
     const functionEntryBase = path.join(__dirname, '.');
 
@@ -107,7 +106,10 @@ export default abstract class UnitTestStack extends cdk.Stack {
       }
     );
 
+    this.addTestResourceTag(observerFunction, observerId);
+
     this.unitTestTable.grantReadWriteData(observerFunction);
+
     return observerFunction;
   }
 
@@ -124,6 +126,8 @@ export default abstract class UnitTestStack extends cdk.Stack {
         UNIT_TEST_TABLE_NAME: this.unitTestTable.tableName,
       },
     });
+
+    this.addTestResourceTag(mockFunction, mockId);
 
     this.unitTestTable.grantReadWriteData(mockFunction);
 
