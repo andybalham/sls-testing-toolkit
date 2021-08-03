@@ -12,11 +12,7 @@ export interface SimpleEventRouterProps {
 
 export default class SimpleEventRouterConstruct extends cdk.Construct {
   //
-  static readonly PositiveOutputTopicId = 'PositiveOutputTopic';
-
   readonly positiveOutputTopic: sns.ITopic;
-
-  static readonly NegativeOutputTopicId = 'NegativeOutputTopic';
 
   readonly negativeOutputTopic: sns.ITopic;
 
@@ -25,17 +21,9 @@ export default class SimpleEventRouterConstruct extends cdk.Construct {
 
     const outputTopicProps = {};
 
-    this.positiveOutputTopic = new sns.Topic(
-      this,
-      SimpleEventRouterConstruct.PositiveOutputTopicId,
-      outputTopicProps
-    );
+    this.positiveOutputTopic = new sns.Topic(this, 'PositiveOutputTopic', outputTopicProps);
 
-    this.negativeOutputTopic = new sns.Topic(
-      this,
-      SimpleEventRouterConstruct.NegativeOutputTopicId,
-      outputTopicProps
-    );
+    this.negativeOutputTopic = new sns.Topic(this, 'NegativeOutputTopic', outputTopicProps);
 
     const simpleEventRouterFunction = new lambdaNodejs.NodejsFunction(
       scope,

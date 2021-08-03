@@ -27,7 +27,7 @@ export default class SimpleEventRouterTestStack extends UnitTestStack {
 
     this.addTestResourceTag(testInputTopic, SimpleEventRouterTestStack.TestInputTopicId);
 
-    const sut = new SimpleEventRouterConstruct(this, 'SimpleEventRouter', {
+    const sut = new SimpleEventRouterConstruct(this, 'SUT', {
       inputTopic: testInputTopic,
     });
 

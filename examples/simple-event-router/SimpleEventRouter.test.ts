@@ -4,23 +4,65 @@ import { expect } from 'chai';
 import { TestObservation, UnitTestClient } from '../../src';
 import TopicTestClient from '../../src/TopicTestClient';
 import { Event } from './Event';
-import TestStack from './SimpleEventRouterTestStack';
+import SimpleEventRouterTestStack from './SimpleEventRouterTestStack';
 
 describe('SimpleEventRouter Test Suite', () => {
   //
-  let testInputTopic: TopicTestClient;
-
   const testClient = new UnitTestClient({
-    testResourceTagKey: TestStack.ResourceTagKey,
+    testResourceTagKey: SimpleEventRouterTestStack.ResourceTagKey,
   });
+
+  let testInputTopic: TopicTestClient;
 
   before(async () => {
     await testClient.initialiseClientAsync();
-    testInputTopic = testClient.getTopicTestClient(TestStack.TestInputTopicId);
+    testInputTopic = testClient.getTopicTestClient(SimpleEventRouterTestStack.TestInputTopicId);
   });
 
   beforeEach(async () => {
     await testClient.initialiseTestAsync();
+  });
+
+  it(`Routes positive sums`, async () => {
+    // Arrange
+
+    const testEvent: Event = {
+      values: [1, 2, 3],
+    };
+
+    // Act
+
+    await testInputTopic.publishEventAsync(testEvent);
+
+    // Await
+
+    const { observations, timedOut } = await testClient.pollTestAsync({
+      until: async ({ o }) => o.length > 0,
+      intervalSeconds: 2,
+      timeoutSeconds: 12,
+    });
+
+    // Assert
+
+    expect(timedOut, 'timedOut').to.be.false;
+
+    const positiveObservations = TestObservation.filterById(
+      observations,
+      SimpleEventRouterTestStack.PositiveOutputTopicObserverId
+    );
+
+    const negativeObservations = TestObservation.filterById(
+      observations,
+      SimpleEventRouterTestStack.NegativeOutputTopicObserverId
+    );
+
+    expect(positiveObservations.length).to.be.greaterThan(0);
+    expect(negativeObservations.length).to.equal(0);
+
+    const routedEvent = JSON.parse(
+      (positiveObservations[0].event as SNSEvent).Records[0].Sns.Message
+    );
+    expect(routedEvent).to.deep.equal(testEvent);
   });
 
   [
@@ -56,12 +98,12 @@ describe('SimpleEventRouter Test Suite', () => {
 
       const positiveObservations = TestObservation.filterById(
         observations,
-        TestStack.PositiveOutputTopicObserverId
+        SimpleEventRouterTestStack.PositiveOutputTopicObserverId
       );
 
       const negativeObservations = TestObservation.filterById(
         observations,
-        TestStack.NegativeOutputTopicObserverId
+        SimpleEventRouterTestStack.NegativeOutputTopicObserverId
       );
 
       if (theory.isExpectedPositive) {
@@ -70,7 +112,7 @@ describe('SimpleEventRouter Test Suite', () => {
         expect(negativeObservations.length).to.equal(0);
 
         const routedEvent = JSON.parse(
-          (positiveObservations[0].data as SNSEvent).Records[0].Sns.Message
+          (positiveObservations[0].event as SNSEvent).Records[0].Sns.Message
         );
         expect(routedEvent).to.deep.equal(testEvent);
         //
@@ -80,7 +122,7 @@ describe('SimpleEventRouter Test Suite', () => {
         expect(negativeObservations.length).to.be.greaterThan(0);
 
         const routedEvent = JSON.parse(
-          (negativeObservations[0].data as SNSEvent).Records[0].Sns.Message
+          (negativeObservations[0].event as SNSEvent).Records[0].Sns.Message
         );
         expect(routedEvent).to.deep.equal(testEvent);
       }

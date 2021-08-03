@@ -14,7 +14,7 @@ export const handler = async (event: Record<string, any>): Promise<void> => {
   const output: TestObservation = {
     observerId,
     timestamp: Date.now(),
-    data: event,
+    event,
   };
 
   await lambdaTestClient.recordObservationAsync(output);
