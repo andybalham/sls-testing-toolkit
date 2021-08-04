@@ -7,6 +7,7 @@ import FunctionTestClient from './FunctionTestClient';
 import TopicTestClient from './TopicTestClient';
 import BucketTestClient from './BucketTestClient';
 import TableTestClient from './TableTestClient';
+import QueueTestClient from './QueueTestClient';
 
 export {
   UnitTestStack,
@@ -17,5 +18,6 @@ export {
   TopicTestClient,
   BucketTestClient,
   TableTestClient,
+  QueueTestClient,
   TestObservation,
 };

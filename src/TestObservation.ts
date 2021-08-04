@@ -4,7 +4,7 @@ export default class TestObservation {
 
   timestamp: number;
 
-  event: Record<string, any>;
+  data: Record<string, any>;
 
   static getCountById(observations: TestObservation[], observerId: string): number {
     return TestObservation.filterById(observations, observerId).length;

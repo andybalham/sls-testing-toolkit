@@ -2,11 +2,9 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { DocumentClient } from 'aws-sdk/clients/dynamodb';
 import { nanoid } from 'nanoid';
-import MockInvocation from './MockInvocation';
 import {
   CurrentTestItem,
-  InvocationTestItem,
-  MockStateTestItem,
+  FunctionStateTestItem,
   ObservationTestItem,
   TestItemPrefix,
 } from './TestItem';
@@ -64,30 +62,8 @@ export default class TestFunctionClient {
       .promise();
   }
 
-  async recordInvocationAsync(invocation: MockInvocation): Promise<void> {
-    //
-    if (unitTestTableName === undefined) throw new Error('unitTestTableName === undefined');
-
-    const { testId } = await this.getTestPropsAsync();
-
-    const now = Date.now().toString().slice(6);
-
-    const testOutputItem: InvocationTestItem = {
-      PK: testId,
-      SK: `${TestItemPrefix.MockInvocation}-${now}-${nanoid(10)}`,
-      invocation,
-    };
-
-    await documentClient
-      .put({
-        TableName: unitTestTableName,
-        Item: testOutputItem,
-      })
-      .promise();
-  }
-
-  async getMockStateAsync(
-    mockId: string,
+  async getFunctionStateAsync(
+    functionId: string,
     initialState: Record<string, any>
   ): Promise<Record<string, any>> {
     //
@@ -95,46 +71,49 @@ export default class TestFunctionClient {
 
     const { testId } = await this.getTestPropsAsync();
 
-    const mockStateQueryParams /*: QueryInput */ = {
+    const functionStateQueryParams /*: QueryInput */ = {
       // QueryInput results in a 'Condition parameter type does not match schema type'
       TableName: unitTestTableName,
       KeyConditionExpression: `PK = :PK and SK = :SK`,
       ExpressionAttributeValues: {
         ':PK': testId,
-        ':SK': `${TestItemPrefix.MockState}-${mockId}`,
+        ':SK': `${TestItemPrefix.FunctionState}-${functionId}`,
       },
     };
 
-    const mockStateQueryOutput = await documentClient.query(mockStateQueryParams).promise();
+    const functionStateQueryOutput = await documentClient.query(functionStateQueryParams).promise();
 
-    if (mockStateQueryOutput.Items === undefined || mockStateQueryOutput.Items.length === 0) {
+    if (
+      functionStateQueryOutput.Items === undefined ||
+      functionStateQueryOutput.Items.length === 0
+    ) {
       return initialState;
     }
 
-    if (mockStateQueryOutput.Items.length > 1)
-      throw new Error('mockStateQueryOutput.Items.length > 1');
+    if (functionStateQueryOutput.Items.length > 1)
+      throw new Error('functionStateQueryOutput.Items.length > 1');
 
-    const mockState = mockStateQueryOutput.Items[0].state;
+    const mockState = functionStateQueryOutput.Items[0].state;
 
     return mockState;
   }
 
-  async setMockStateAsync(mockId: string, state: Record<string, any>): Promise<void> {
+  async setFunctionStateAsync(functionId: string, state: Record<string, any>): Promise<void> {
     //
     if (unitTestTableName === undefined) throw new Error('unitTestTableName === undefined');
 
     const { testId } = await this.getTestPropsAsync();
 
-    const mockStateItem: MockStateTestItem = {
+    const functionStateItem: FunctionStateTestItem = {
       PK: testId,
-      SK: `${TestItemPrefix.MockState}-${mockId}`,
+      SK: `${TestItemPrefix.FunctionState}-${functionId}`,
       state,
     };
 
     await documentClient
       .put({
         TableName: unitTestTableName,
-        Item: mockStateItem,
+        Item: functionStateItem,
       })
       .promise();
   }

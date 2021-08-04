@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import { SQSEvent } from 'aws-lambda';
 import { expect } from 'chai';
-import { TestObservation, UnitTestClient } from '../../src';
-import MockInvocation from '../../src/MockInvocation';
-import QueueTestClient from '../../src/QueueTestClient';
+import { TestObservation, UnitTestClient, QueueTestClient } from '../../src';
 import { Message } from './Message';
 import TestStack from './SimpleMessageRouterTestStack';
 
@@ -43,8 +41,8 @@ describe('SimpleMessageRouter Test Suite', () => {
 
       // Await
 
-      const { invocations, timedOut } = await testClient.pollTestAsync({
-        until: async ({ i }) => i.length > 0,
+      const { observations, timedOut } = await testClient.pollTestAsync({
+        until: async (o) => o.length > 0,
         intervalSeconds: 2,
         timeoutSeconds: 12,
       });
@@ -53,35 +51,35 @@ describe('SimpleMessageRouter Test Suite', () => {
 
       expect(timedOut, 'timedOut').to.be.false;
 
-      expect(invocations.length).to.equal(1);
+      expect(observations.length).to.equal(1);
 
-      const positiveInvocations = MockInvocation.filterById(
-        invocations,
-        TestStack.PositiveOutputQueueMockId
+      const positiveObservations = TestObservation.filterById(
+        observations,
+        TestStack.PositiveOutputQueueConsumerId
       );
 
-      const negativeInvocations = MockInvocation.filterById(
-        invocations,
-        TestStack.NegativeOutputQueueMockId
+      const negativeObservations = TestObservation.filterById(
+        observations,
+        TestStack.NegativeOutputQueueConsumerId
       );
 
       if (theory.isExpectedPositive) {
         //
-        expect(positiveInvocations.length).to.be.greaterThan(0);
-        expect(negativeInvocations.length).to.equal(0);
+        expect(positiveObservations.length).to.be.greaterThan(0);
+        expect(negativeObservations.length).to.equal(0);
 
         const routedMessage = JSON.parse(
-          (positiveInvocations[0].request as SQSEvent).Records[0].body
+          (positiveObservations[0].data as SQSEvent).Records[0].body
         );
         expect(routedMessage).to.deep.equal(testMessage);
         //
       } else {
         //
-        expect(positiveInvocations.length).to.equal(0);
-        expect(negativeInvocations.length).to.be.greaterThan(0);
+        expect(positiveObservations.length).to.equal(0);
+        expect(negativeObservations.length).to.be.greaterThan(0);
 
         const routedMessage = JSON.parse(
-          (negativeInvocations[0].request as SQSEvent).Records[0].body
+          (negativeObservations[0].data as SQSEvent).Records[0].body
         );
         expect(routedMessage).to.deep.equal(testMessage);
       }
@@ -94,7 +92,7 @@ describe('SimpleMessageRouter Test Suite', () => {
     await testClient.initialiseTestAsync({
       testId: 'routes-to-dlq',
       mockResponses: {
-        [TestStack.PositiveOutputQueueMockId]: [{ error: 'Positive error', repeat: 3 }],
+        [TestStack.PositiveOutputQueueConsumerId]: [{ error: 'Positive error', repeat: 3 }],
       },
     });
 
@@ -109,7 +107,8 @@ describe('SimpleMessageRouter Test Suite', () => {
     // Await
 
     const { observations, timedOut } = await testClient.pollTestAsync({
-      until: async ({ o }) => o.length > 0,
+      until: async (o) =>
+        TestObservation.getCountById(o, TestStack.PositiveOutputDLQConsumerId) > 0,
       intervalSeconds: 2,
       timeoutSeconds: 12,
     });
@@ -120,7 +119,7 @@ describe('SimpleMessageRouter Test Suite', () => {
 
     const positiveDLQObservations = TestObservation.filterById(
       observations,
-      TestStack.PositiveOutputDLQObserverId
+      TestStack.PositiveOutputDLQConsumerId
     );
 
     expect(positiveDLQObservations.length).to.be.greaterThanOrEqual(1);
@@ -134,7 +133,9 @@ describe('SimpleMessageRouter Test Suite', () => {
     await testClient.initialiseTestAsync({
       testId: 'routes-to-dlq',
       mockResponses: {
-        [TestStack.PositiveOutputQueueMockId]: [{ error: 'Positive error', repeat: errorCount }],
+        [TestStack.PositiveOutputQueueConsumerId]: [
+          { error: 'Positive error', repeat: errorCount },
+        ],
       },
     });
 
@@ -148,8 +149,8 @@ describe('SimpleMessageRouter Test Suite', () => {
 
     // Await
 
-    const { invocations, timedOut } = await testClient.pollTestAsync({
-      until: async ({ i }) => i.length > errorCount,
+    const { observations, timedOut } = await testClient.pollTestAsync({
+      until: async (o) => o.length > errorCount,
       intervalSeconds: 2,
       timeoutSeconds: 12,
     });
@@ -158,6 +159,6 @@ describe('SimpleMessageRouter Test Suite', () => {
 
     expect(timedOut, 'timedOut').to.be.false;
 
-    expect(invocations.length).to.be.greaterThanOrEqual(errorCount + 1);
+    expect(observations.length).to.be.greaterThanOrEqual(errorCount + 1);
   });
 });

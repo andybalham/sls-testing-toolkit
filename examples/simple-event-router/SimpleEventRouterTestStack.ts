@@ -9,17 +9,17 @@ export default class SimpleEventRouterTestStack extends UnitTestStack {
 
   static readonly TestInputTopicId = 'TestInputTopic';
 
-  static readonly PositiveOutputTopicObserverId = 'PositiveOutputTopicObserverFunction';
+  static readonly PositiveOutputTopicSubscriberId = 'PositiveOutputTopicSubscriberFunction';
 
-  static readonly NegativeOutputTopicObserverId = 'NegativeOutputTopicObserverFunction';
+  static readonly NegativeOutputTopicSubscriberId = 'NegativeOutputTopicSubscriberFunction';
 
   constructor(scope: cdk.Construct, id: string) {
     //
     super(scope, id, {
       testResourceTagKey: SimpleEventRouterTestStack.ResourceTagKey,
-      observerIds: [
-        SimpleEventRouterTestStack.PositiveOutputTopicObserverId,
-        SimpleEventRouterTestStack.NegativeOutputTopicObserverId,
+      testFunctionIds: [
+        SimpleEventRouterTestStack.PositiveOutputTopicSubscriberId,
+        SimpleEventRouterTestStack.NegativeOutputTopicSubscriberId,
       ],
     });
 
@@ -33,12 +33,12 @@ export default class SimpleEventRouterTestStack extends UnitTestStack {
 
     this.addEventSubscriber(
       sut.positiveOutputTopic,
-      SimpleEventRouterTestStack.PositiveOutputTopicObserverId
+      SimpleEventRouterTestStack.PositiveOutputTopicSubscriberId
     );
 
     this.addEventSubscriber(
       sut.negativeOutputTopic,
-      SimpleEventRouterTestStack.NegativeOutputTopicObserverId
+      SimpleEventRouterTestStack.NegativeOutputTopicSubscriberId
     );
   }
 }

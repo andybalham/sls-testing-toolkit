@@ -11,8 +11,7 @@ import path from 'path';
 export interface UnitTestStackProps {
   testResourceTagKey: string;
   unitTestTable?: boolean;
-  observerIds?: string[];
-  mockIds?: string[];
+  testFunctionIds?: string[];
 }
 
 export default abstract class UnitTestStack extends cdk.Stack {
@@ -32,8 +31,7 @@ export default abstract class UnitTestStack extends cdk.Stack {
 
     if (
       props.unitTestTable ||
-      (props.observerIds?.length ?? 0) > 0 ||
-      (props.mockIds?.length ?? 0) > 0
+      (props.testFunctionIds?.length ?? 0) > 0
     ) {
       //
       // Test table
@@ -50,19 +48,11 @@ export default abstract class UnitTestStack extends cdk.Stack {
 
     this.testFunctions = {};
 
-    if (props.observerIds) {
-      props.observerIds
-        .map((i) => ({ observerId: i, function: this.newObserverFunction(i) }))
+    if (props.testFunctionIds) {
+      props.testFunctionIds
+        .map((i) => ({ observerId: i, function: this.newTestFunction(i) }))
         .forEach((iaf) => {
           this.testFunctions[iaf.observerId] = iaf.function;
-        });
-    }
-
-    if (props.mockIds) {
-      props.mockIds
-        .map((i) => ({ mockId: i, function: this.newMockFunction(i) }))
-        .forEach((iaf) => {
-          this.testFunctions[iaf.mockId] = iaf.function;
         });
     }
   }
@@ -86,51 +76,24 @@ export default abstract class UnitTestStack extends cdk.Stack {
     topic.addSubscription(new snsSubs.LambdaSubscription(topicObserverFunction));
   }
 
-  private newObserverFunction(observerId: string): lambda.IFunction {
-    //
-    if (this.unitTestTable === undefined) throw new Error('this.unitTestTable === undefined');
-
-    const functionEntryBase = path.join(__dirname, '.');
-
-    const observerFunction = new lambdaNodejs.NodejsFunction(
-      this,
-      `ObserverFunction-${observerId}`,
-      {
-        runtime: lambda.Runtime.NODEJS_14_X,
-        entry: path.join(functionEntryBase, `observerFunction.ts`),
-        handler: 'handler',
-        environment: {
-          OBSERVER_ID: observerId,
-          UNIT_TEST_TABLE_NAME: this.unitTestTable.tableName,
-        },
-      }
-    );
-
-    this.addTestResourceTag(observerFunction, observerId);
-
-    this.unitTestTable.grantReadWriteData(observerFunction);
-
-    return observerFunction;
-  }
-
-  private newMockFunction(mockId: string): lambda.IFunction {
+  private newTestFunction(functionId: string): lambda.IFunction {
     //
     const functionEntryBase = path.join(__dirname, '.');
 
-    const mockFunction = new lambdaNodejs.NodejsFunction(this, `MockFunction-${mockId}`, {
+    const testFunction = new lambdaNodejs.NodejsFunction(this, `TestFunction-${functionId}`, {
       runtime: lambda.Runtime.NODEJS_14_X,
-      entry: path.join(functionEntryBase, `mockFunction.ts`),
+      entry: path.join(functionEntryBase, `testFunction.ts`),
       handler: 'handler',
       environment: {
-        MOCK_ID: mockId,
+        FUNCTION_ID: functionId,
         UNIT_TEST_TABLE_NAME: this.unitTestTable.tableName,
       },
     });
 
-    this.addTestResourceTag(mockFunction, mockId);
+    this.addTestResourceTag(testFunction, functionId);
 
-    this.unitTestTable.grantReadWriteData(mockFunction);
+    this.unitTestTable.grantReadWriteData(testFunction);
 
-    return mockFunction;
+    return testFunction;
   }
 }

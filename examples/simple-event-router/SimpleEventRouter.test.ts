@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import { SNSEvent } from 'aws-lambda';
 import { expect } from 'chai';
-import { TestObservation, UnitTestClient } from '../../src';
-import TopicTestClient from '../../src/TopicTestClient';
+import { TestObservation, UnitTestClient, TopicTestClient } from '../../src';
 import { Event } from './Event';
 import SimpleEventRouterTestStack from './SimpleEventRouterTestStack';
 
@@ -37,7 +36,7 @@ describe('SimpleEventRouter Test Suite', () => {
     // Await
 
     const { observations, timedOut } = await testClient.pollTestAsync({
-      until: async ({ o }) => o.length > 0,
+      until: async (o) => o.length > 0,
       intervalSeconds: 2,
       timeoutSeconds: 12,
     });
@@ -48,19 +47,19 @@ describe('SimpleEventRouter Test Suite', () => {
 
     const positiveObservations = TestObservation.filterById(
       observations,
-      SimpleEventRouterTestStack.PositiveOutputTopicObserverId
+      SimpleEventRouterTestStack.PositiveOutputTopicSubscriberId
     );
 
     const negativeObservations = TestObservation.filterById(
       observations,
-      SimpleEventRouterTestStack.NegativeOutputTopicObserverId
+      SimpleEventRouterTestStack.NegativeOutputTopicSubscriberId
     );
 
     expect(positiveObservations.length).to.be.greaterThan(0);
     expect(negativeObservations.length).to.equal(0);
 
     const routedEvent = JSON.parse(
-      (positiveObservations[0].event as SNSEvent).Records[0].Sns.Message
+      (positiveObservations[0].data as SNSEvent).Records[0].Sns.Message
     );
     expect(routedEvent).to.deep.equal(testEvent);
   });
@@ -85,7 +84,7 @@ describe('SimpleEventRouter Test Suite', () => {
       // Await
 
       const { observations, timedOut } = await testClient.pollTestAsync({
-        until: async ({ o }) => o.length > 0,
+        until: async (o) => o.length > 0,
         intervalSeconds: 2,
         timeoutSeconds: 12,
       });
@@ -98,12 +97,12 @@ describe('SimpleEventRouter Test Suite', () => {
 
       const positiveObservations = TestObservation.filterById(
         observations,
-        SimpleEventRouterTestStack.PositiveOutputTopicObserverId
+        SimpleEventRouterTestStack.PositiveOutputTopicSubscriberId
       );
 
       const negativeObservations = TestObservation.filterById(
         observations,
-        SimpleEventRouterTestStack.NegativeOutputTopicObserverId
+        SimpleEventRouterTestStack.NegativeOutputTopicSubscriberId
       );
 
       if (theory.isExpectedPositive) {
@@ -112,7 +111,7 @@ describe('SimpleEventRouter Test Suite', () => {
         expect(negativeObservations.length).to.equal(0);
 
         const routedEvent = JSON.parse(
-          (positiveObservations[0].event as SNSEvent).Records[0].Sns.Message
+          (positiveObservations[0].data as SNSEvent).Records[0].Sns.Message
         );
         expect(routedEvent).to.deep.equal(testEvent);
         //
@@ -122,7 +121,7 @@ describe('SimpleEventRouter Test Suite', () => {
         expect(negativeObservations.length).to.be.greaterThan(0);
 
         const routedEvent = JSON.parse(
-          (negativeObservations[0].event as SNSEvent).Records[0].Sns.Message
+          (negativeObservations[0].data as SNSEvent).Records[0].Sns.Message
         );
         expect(routedEvent).to.deep.equal(testEvent);
       }

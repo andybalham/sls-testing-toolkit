@@ -1,14 +1,11 @@
-import MockInvocation from "./MockInvocation";
-import TestObservation from "./TestObservation";
+import TestObservation from './TestObservation';
 import { TestProps } from './TestProps';
 
 export enum TestItemPrefix {
   TestInput = 'TestInput',
   // eslint-disable-next-line @typescript-eslint/no-shadow
   TestObservation = 'TestObservation',
-  MockState = 'MockState',
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  MockInvocation = 'MockInvocation',
+  FunctionState = 'FunctionState',
 }
 
 export interface TestItemKey {
@@ -24,10 +21,6 @@ export interface ObservationTestItem extends TestItemKey {
   observation: TestObservation;
 }
 
-export interface InvocationTestItem extends TestItemKey {
-  invocation: MockInvocation;
-}
-
-export interface MockStateTestItem extends TestItemKey {
+export interface FunctionStateTestItem extends TestItemKey {
   state: Record<string, any>;
 }

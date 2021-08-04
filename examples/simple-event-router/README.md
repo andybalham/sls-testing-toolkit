@@ -27,9 +27,9 @@ static readonly ResourceTagKey = 'SimpleEventRouterTestStack';
 
 static readonly TestInputTopicId = 'TestInputTopic';
 
-static readonly PositiveOutputTopicObserverId = 'PositiveOutputTopicObserverFunction';
+static readonly PositiveOutputTopicSubscriberId = 'PositiveOutputTopicSubscriberFunction';
 
-static readonly NegativeOutputTopicObserverId = 'NegativeOutputTopicObserverFunction';
+static readonly NegativeOutputTopicSubscriberId = 'NegativeOutputTopicSubscriberFunction';
 ```
 
 In the constructor the first thing is to call the `super` constructor.
@@ -37,16 +37,16 @@ In the constructor the first thing is to call the `super` constructor.
 ```TypeScript
 super(scope, id, {
   testResourceTagKey: SimpleEventRouterTestStack.ResourceTagKey,
-  observerIds: [
-    SimpleEventRouterTestStack.PositiveOutputTopicObserverId,
-    SimpleEventRouterTestStack.NegativeOutputTopicObserverId,
+  testFunctionIds: [
+    SimpleEventRouterTestStack.PositiveOutputTopicSubscriberId,
+    SimpleEventRouterTestStack.NegativeOutputTopicSubscriberId,
   ],
 });
 ```
 
 The value specified `testResourceTagKey` is used for the key when tagging the test resources. It should be unique to the stack, to avoid clashes with other tests.
 
-For each value in `observerIds`, `UnitTestStack` will create a Lambda function that will record all received events in a DynamoDB table.
+For each value in `testFunctionIds`, `UnitTestStack` will create a Lambda function that will record all received events in a DynamoDB table.
 
 Next is a test input topic to publish events to, to drive the functionality of the construct.
 
@@ -71,12 +71,12 @@ Finally, the observer functions are added as event subscribers to the SNS topics
 ```TypeScript
 this.addEventSubscriber(
   sut.positiveOutputTopic,
-  SimpleEventRouterTestStack.PositiveOutputTopicObserverId
+  SimpleEventRouterTestStack.PositiveOutputTopicSubscriberId
 );
 
 this.addEventSubscriber(
   sut.negativeOutputTopic,
-  SimpleEventRouterTestStack.NegativeOutputTopicObserverId
+  SimpleEventRouterTestStack.NegativeOutputTopicSubscriberId
 );
 ```
 
@@ -128,7 +128,7 @@ The unit test itself is shown in full below. The key part being the call to `pol
     // Await
 
     const { observations, timedOut } = await testClient.pollTestAsync({
-      until: async ({ o }) => o.length > 0,
+      until: async (o) => o.length > 0,
       intervalSeconds: 2,
       timeoutSeconds: 12,
     });
@@ -139,12 +139,12 @@ The unit test itself is shown in full below. The key part being the call to `pol
 
     const positiveObservations = TestObservation.filterById(
       observations,
-      SimpleEventRouterTestStack.PositiveOutputTopicObserverId
+      SimpleEventRouterTestStack.PositiveOutputTopicSubscriberId
     );
 
     const negativeObservations = TestObservation.filterById(
       observations,
-      SimpleEventRouterTestStack.NegativeOutputTopicObserverId
+      SimpleEventRouterTestStack.NegativeOutputTopicSubscriberId
     );
 
     expect(positiveObservations.length).to.be.greaterThan(0);

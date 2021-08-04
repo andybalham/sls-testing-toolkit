@@ -9,25 +9,23 @@ export default class SimpleMessageRouterTestStack extends UnitTestStack {
 
   static readonly TestInputQueueId = 'TestInputQueue';
 
-  static readonly PositiveOutputQueueMockId = 'PositiveOutputQueueMockFunction';
+  static readonly PositiveOutputQueueConsumerId = 'PositiveOutputQueueConsumerFunction';
 
-  static readonly PositiveOutputDLQObserverId = 'PositiveOutputDLQObserverFunction';
+  static readonly PositiveOutputDLQConsumerId = 'PositiveOutputDLQConsumerFunction';
 
-  static readonly NegativeOutputQueueMockId = 'NegativeOutputQueueMockFunction';
+  static readonly NegativeOutputQueueConsumerId = 'NegativeOutputQueueConsumerFunction';
 
-  static readonly NegativeOutputDLQObserverId = 'NegativeOutputDLQObserverFunction';
+  static readonly NegativeOutputDLQConsumerId = 'NegativeOutputDLQConsumerFunction';
 
   constructor(scope: cdk.Construct, id: string) {
     //
     super(scope, id, {
       testResourceTagKey: SimpleMessageRouterTestStack.ResourceTagKey,
-      observerIds: [
-        SimpleMessageRouterTestStack.PositiveOutputDLQObserverId,
-        SimpleMessageRouterTestStack.NegativeOutputDLQObserverId,
-      ],
-      mockIds: [
-        SimpleMessageRouterTestStack.PositiveOutputQueueMockId,
-        SimpleMessageRouterTestStack.NegativeOutputQueueMockId,
+      testFunctionIds: [
+        SimpleMessageRouterTestStack.PositiveOutputDLQConsumerId,
+        SimpleMessageRouterTestStack.NegativeOutputDLQConsumerId,
+        SimpleMessageRouterTestStack.PositiveOutputQueueConsumerId,
+        SimpleMessageRouterTestStack.NegativeOutputQueueConsumerId,
       ],
     });
 
@@ -44,22 +42,22 @@ export default class SimpleMessageRouterTestStack extends UnitTestStack {
 
     this.addMessageConsumer(
       sut.positiveOutputQueue,
-      SimpleMessageRouterTestStack.PositiveOutputQueueMockId
+      SimpleMessageRouterTestStack.PositiveOutputQueueConsumerId
     );
 
     this.addMessageConsumer(
       sut.positiveOutputDLQ,
-      SimpleMessageRouterTestStack.PositiveOutputDLQObserverId
+      SimpleMessageRouterTestStack.PositiveOutputDLQConsumerId
     );
 
     this.addMessageConsumer(
       sut.negativeOutputQueue,
-      SimpleMessageRouterTestStack.NegativeOutputQueueMockId
+      SimpleMessageRouterTestStack.NegativeOutputQueueConsumerId
     );
 
     this.addMessageConsumer(
       sut.negativeOutputDLQ,
-      SimpleMessageRouterTestStack.NegativeOutputDLQObserverId
+      SimpleMessageRouterTestStack.NegativeOutputDLQConsumerId
     );
   }
 }

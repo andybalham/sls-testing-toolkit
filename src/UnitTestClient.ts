@@ -13,7 +13,6 @@ import UnitTestStack from './UnitTestStack';
 import { CurrentTestItem, TestItemKey, TestItemPrefix } from './TestItem';
 import StateMachineTestClient from './StateMachineTestClient';
 import TestObservation from './TestObservation';
-import MockInvocation from './MockInvocation';
 import { TestProps } from './TestProps';
 import BucketTestClient from './BucketTestClient';
 import FunctionTestClient from './FunctionTestClient';
@@ -91,8 +90,6 @@ export default class UnitTestClient {
 
   // Instance ----------------------------------------------------------------
 
-  // TODO 01Aug21: Look to have methods to clear down the logs automatically for test functions and others
-
   async initialiseClientAsync(): Promise<void> {
     //
     this.testResourceTagMappingList = await UnitTestClient.getResourcesByTagKeyAsync(
@@ -109,7 +106,11 @@ export default class UnitTestClient {
       // eslint-disable-next-line no-restricted-syntax
       for await (const testFunctionName of testFunctionNames) {
         if (testFunctionName) {
-          await deleteAllLogs(UnitTestClient.getRegion(), testFunctionName);
+          try {
+            await deleteAllLogs(UnitTestClient.getRegion(), testFunctionName);
+          } catch (error) {
+            // Ignore
+          }
         }
       }
     }
@@ -183,12 +184,11 @@ export default class UnitTestClient {
     intervalSeconds,
     timeoutSeconds,
   }: {
-    until: ({ o, i }: { o: TestObservation[]; i: MockInvocation[] }) => Promise<boolean>;
+    until: (o: TestObservation[]) => Promise<boolean>;
     intervalSeconds: number;
     timeoutSeconds: number;
   }): Promise<{
     observations: TestObservation[];
-    invocations: MockInvocation[];
     timedOut: boolean;
   }> {
     //
@@ -197,25 +197,20 @@ export default class UnitTestClient {
     const timedOut = (): boolean => Date.now() > timeOutThreshold;
 
     let observations = new Array<TestObservation>();
-    let invocations = new Array<MockInvocation>();
 
     // eslint-disable-next-line no-await-in-loop
-    while (!timedOut() && !(await until({ o: observations, i: invocations }))) {
+    while (!timedOut() && !(await until(observations))) {
       //
       // eslint-disable-next-line no-await-in-loop
       await UnitTestClient.sleepAsync(intervalSeconds);
 
       // eslint-disable-next-line no-await-in-loop
       observations = await this.getTestObservationsAsync();
-
-      // eslint-disable-next-line no-await-in-loop
-      invocations = await this.getMockInvocationsAsync();
     }
 
     return {
-      timedOut: !(await until({ o: observations, i: invocations })),
+      timedOut: !(await until(observations)),
       observations,
-      invocations,
     };
   }
 
@@ -261,48 +256,6 @@ export default class UnitTestClient {
     } while (lastEvaluatedKey);
 
     return allObservations;
-  }
-
-  async getMockInvocationsAsync(): Promise<MockInvocation[]> {
-    //
-    let allInvocations = new Array<MockInvocation>();
-
-    if (this.unitTestTableName === undefined) {
-      return allInvocations;
-    }
-
-    let lastEvaluatedKey: dynamodb.Key | undefined;
-
-    do {
-      const queryInvocationsParams /*: QueryInput */ = {
-        // QueryInput results in a 'Condition parameter type does not match schema type'
-        TableName: this.unitTestTableName,
-        KeyConditionExpression: `PK = :PK and begins_with(SK, :SKPrefix)`,
-        ExpressionAttributeValues: {
-          ':PK': this.testId,
-          ':SKPrefix': TestItemPrefix.MockInvocation,
-        },
-        ExclusiveStartKey: lastEvaluatedKey,
-      };
-
-      // eslint-disable-next-line no-await-in-loop
-      const queryInvocationsOutput = await UnitTestClient.db
-        .query(queryInvocationsParams)
-        .promise();
-
-      if (!queryInvocationsOutput.Items) {
-        return allInvocations;
-      }
-
-      const invocations = queryInvocationsOutput.Items.map((i) => i.invocation as MockInvocation);
-
-      allInvocations = allInvocations.concat(invocations);
-
-      lastEvaluatedKey = queryInvocationsOutput.LastEvaluatedKey;
-      //
-    } while (lastEvaluatedKey);
-
-    return allInvocations;
   }
 
   getFunctionTestClient(functionStackId: string): FunctionTestClient {
