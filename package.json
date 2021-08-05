@@ -31,6 +31,8 @@
   },
   "homepage": "https://github.com/andybalham/sls-testing-toolkit#README",
   "devDependencies": {
+    "@andybalham/state-machine-builder": "^1.0.10",
+    "@andybalham/state-machine-with-graph": "^1.0.3",
     "@istanbuljs/nyc-config-typescript": "^1.0.1",
     "@types/aws-lambda": "^8.10.81",
     "@types/chai": "^4.2.21",
@@ -38,6 +40,8 @@
     "@types/node": "^14.14.31",
     "@typescript-eslint/eslint-plugin": "^4.28.5",
     "@typescript-eslint/parser": "^4.28.5",
+    "@aws-cdk/aws-stepfunctions": "^1.116.0",
+    "@aws-cdk/aws-stepfunctions-tasks": "^1.116.0",
     "aws-sdk": "^2.958.0",
     "chai": "^4.3.4",
     "esbuild": "^0.12.17",

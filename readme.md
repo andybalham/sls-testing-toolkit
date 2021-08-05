@@ -8,7 +8,6 @@ The best way to see what sls-testing-toolkit can do for you is to look at the ex
 
 ## Examples
 
-* [Simple Event Router](https://github.com/andybalham/sls-testing-toolkit/blob/main/examples/simple-event-router) - testing a construct that routes SNS events
+- [Simple Event Router](https://github.com/andybalham/sls-testing-toolkit/blob/main/examples/simple-event-router) - testing a construct that routes SNS events
 
-* [Simple Message Router](https://github.com/andybalham/sls-testing-toolkit/blob/main/examples/simple-message-router) - testing a construct that routes SQS messages, complete with dead letter queues
-
+- [Simple Message Router](https://github.com/andybalham/sls-testing-toolkit/blob/main/examples/simple-message-router) - testing a construct that routes SQS messages, complete with dead letter queues
