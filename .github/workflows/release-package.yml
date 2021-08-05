@@ -30,7 +30,7 @@ jobs:
       # - run: npm run test-coverage
       - run: |
           cp ./package.json ./dist/src/package.json 
-          cp ./README.md ./dist/src/README.md
+          cp ./readme.md ./dist/src/readme.md
           cd ./dist/src
           npm publish --access=public
         env:
