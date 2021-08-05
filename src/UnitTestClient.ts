@@ -25,7 +25,7 @@ dotenv.config();
 
 export interface UnitTestClientProps {
   testResourceTagKey: string;
-  keepLogs?: boolean;
+  deleteLogs?: boolean;
 }
 
 export default class UnitTestClient {
@@ -102,7 +102,7 @@ export default class UnitTestClient {
       .filter((m) => m.ResourceARN?.match(UnitTestClient.ResourceNamePatterns.function))
       .map((m) => m.ResourceARN?.match(UnitTestClient.ResourceNamePatterns.function)?.groups?.name);
 
-    if (!this.props.keepLogs) {
+    if (this.props.deleteLogs) {
       // eslint-disable-next-line no-restricted-syntax
       for await (const testFunctionName of testFunctionNames) {
         if (testFunctionName) {
