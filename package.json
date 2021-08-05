@@ -29,7 +29,7 @@
   "bugs": {
     "url": "https://github.com/andybalham/sls-testing-toolkit/issues"
   },
-  "homepage": "https://github.com/andybalham/sls-testing-toolkit#readme",
+  "homepage": "https://github.com/andybalham/sls-testing-toolkit#README",
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.1",
     "@types/aws-lambda": "^8.10.81",
