@@ -181,12 +181,12 @@ export default class UnitTestClient {
 
   async pollTestAsync({
     until,
-    intervalSeconds,
-    timeoutSeconds,
+    intervalSeconds = 2,
+    timeoutSeconds = 12,
   }: {
     until: (o: TestObservation[]) => Promise<boolean>;
-    intervalSeconds: number;
-    timeoutSeconds: number;
+    intervalSeconds?: number;
+    timeoutSeconds?: number;
   }): Promise<{
     observations: TestObservation[];
     timedOut: boolean;

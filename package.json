@@ -16,9 +16,12 @@
     "simple-event-router-synth": "tsc && cdk synth SimpleEventRouterTestStack",
     "simple-event-router-deploy": "tsc && cdk deploy SimpleEventRouterTestStack",
     "simple-event-router-destroy": "tsc && cdk destroy SimpleEventRouterTestStack",
-    "simple-message-router-synth": "tsc && cdk synth SimpleMessageRouterTestStack",
-    "simple-message-router-deploy": "tsc && cdk deploy SimpleMessageRouterTestStack",
-    "simple-message-router-destroy": "tsc && cdk destroy SimpleMessageRouterTestStack"
+    "simple-message-router-synth": "tsc && cdk synth LoanProcessorTestStack",
+    "simple-message-router-deploy": "tsc && cdk deploy LoanProcessorTestStack",
+    "simple-message-router-destroy": "tsc && cdk destroy LoanProcessorTestStack",
+    "loan-processor-synth": "tsc && cdk synth LoanProcessorTestStack",
+    "loan-processor-deploy": "tsc && cdk deploy LoanProcessorTestStack",
+    "loan-processor-destroy": "tsc && cdk destroy LoanProcessorTestStack"
   },
   "repository": {
     "type": "git",

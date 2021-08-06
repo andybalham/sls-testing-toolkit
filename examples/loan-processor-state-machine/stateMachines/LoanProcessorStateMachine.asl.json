@@ -1,0 +1,44 @@
+{
+  "StartAt": "GetCreditRating",
+  "States": {
+    "GetCreditRating": {
+      "End": true,
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "MaxAttempts": 2
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "Next": "HandleCreditRatingError"
+        }
+      ],
+      "Type": "Task",
+      "ResultPath": "$.creditRating",
+      "Resource": "${Token[TOKEN.429]}",
+      "Parameters": {
+        "firstName.$": "$.loanDetails.firstName",
+        "lastName.$": "$.loanDetails.lastName",
+        "postcode.$": "$.loanDetails.postcode"
+      }
+    },
+    "HandleCreditRatingError": {
+      "Type": "Pass",
+      "Result": "CreditRating",
+      "ResultPath": "$.Source",
+      "Next": "ExtractErrorCause"
+    },
+    "ExtractErrorCause": {
+      "End": true,
+      "Type": "Task",
+      "ResultPath": "$.Cause",
+      "Resource": "${Token[TOKEN.526]}"
+    }
+  }
+}
