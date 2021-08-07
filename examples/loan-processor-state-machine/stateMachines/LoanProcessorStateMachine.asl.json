@@ -21,7 +21,7 @@
       ],
       "Type": "Task",
       "ResultPath": "$.creditRating",
-      "Resource": "${Token[TOKEN.429]}",
+      "Resource": "${Token[TOKEN.422]}",
       "Parameters": {
         "firstName.$": "$.loanDetails.firstName",
         "lastName.$": "$.loanDetails.lastName",
@@ -35,10 +35,26 @@
       "Next": "ExtractErrorCause"
     },
     "ExtractErrorCause": {
-      "End": true,
+      "Next": "SendErrorMessage",
       "Type": "Task",
       "ResultPath": "$.Cause",
-      "Resource": "${Token[TOKEN.526]}"
+      "Resource": "${Token[TOKEN.530]}"
+    },
+    "SendErrorMessage": {
+      "Next": "CreditRatingFail",
+      "Type": "Task",
+      "Resource": "arn:${Token[AWS.Partition.5]}:states:::sqs:sendMessage",
+      "Parameters": {
+        "QueueUrl": "${Token[TOKEN.462]}",
+        "MessageBody": {
+          "Source.$": "$.Source",
+          "Cause.$": "$.Cause"
+        }
+      }
+    },
+    "CreditRatingFail": {
+      "Type": "Fail",
+      "Cause": "CreditRating"
     }
   }
 }

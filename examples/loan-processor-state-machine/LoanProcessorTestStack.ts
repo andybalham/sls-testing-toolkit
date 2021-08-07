@@ -1,5 +1,6 @@
 /* eslint-disable no-new */
 import * as cdk from '@aws-cdk/core';
+import * as sqs from '@aws-cdk/aws-sqs';
 import { UnitTestStack } from '../../src';
 import LoanProcessorStateMachine from './LoanProcessorStateMachine';
 import writeGraphJson from './writeGraphJson';
@@ -8,11 +9,13 @@ export default class LoanProcessorTestStack extends UnitTestStack {
   //
   static readonly ResourceTagKey = 'LoanProcessorTestStack';
 
-  static readonly CreditRatingFunctionId = 'CreditRatingFunctionId';
+  static readonly CreditRatingFunctionId = 'CreditRatingFunction';
 
-  static readonly SendErrorMessageFunctionId = 'SendErrorMessageFunctionId';
+  static readonly ErrorQueueId = 'ErrorQueue';
 
-  static readonly SutId = 'SutId';
+  static readonly ErrorQueueConsumerId = 'ErrorQueueConsumer';
+
+  static readonly LoanProcessorStateMachineId = 'LoanProcessorStateMachine';
 
   constructor(scope: cdk.Construct, id: string) {
     //
@@ -20,19 +23,34 @@ export default class LoanProcessorTestStack extends UnitTestStack {
       testResourceTagKey: LoanProcessorTestStack.ResourceTagKey,
       testFunctionIds: [
         LoanProcessorTestStack.CreditRatingFunctionId,
-        LoanProcessorTestStack.SendErrorMessageFunctionId,
+        LoanProcessorTestStack.ErrorQueueConsumerId,
       ],
     });
 
-    const sut = new LoanProcessorStateMachine(this, 'LoanProcessorStateMachine', {
-      creditRatingFunction: this.testFunctions[LoanProcessorTestStack.CreditRatingFunctionId],
-      sendErrorMessageFunction:
-        this.testFunctions[LoanProcessorTestStack.SendErrorMessageFunctionId],
+    // Error queue and consumer
+
+    const errorQueue = new sqs.Queue(this, 'ErrorQueue', {
+      receiveMessageWaitTime: cdk.Duration.seconds(20),
+      visibilityTimeout: cdk.Duration.seconds(3),
     });
 
-    this.addTestResourceTag(sut, LoanProcessorTestStack.SutId);
+    this.addMessageConsumer(
+      errorQueue,
+      LoanProcessorTestStack.ErrorQueueConsumerId
+    );
 
-    // Output the graph JSON to help with development
+    // SUT
+
+    const sut = new LoanProcessorStateMachine(
+      this,
+      LoanProcessorTestStack.LoanProcessorStateMachineId,
+      {
+        creditRatingFunction: this.testFunctions[LoanProcessorTestStack.CreditRatingFunctionId],
+        errorQueue
+      }
+    );
+
+    this.addTestResourceTag(sut, LoanProcessorTestStack.LoanProcessorStateMachineId);
 
     writeGraphJson(sut);
   }
