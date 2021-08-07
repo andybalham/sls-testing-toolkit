@@ -21,7 +21,7 @@
       ],
       "Type": "Task",
       "ResultPath": "$.creditRating",
-      "Resource": "${Token[TOKEN.424]}",
+      "Resource": "${Token[TOKEN.423]}",
       "Parameters": {
         "firstName.$": "$.loanDetails.firstName",
         "lastName.$": "$.loanDetails.lastName",
@@ -48,14 +48,14 @@
       "Type": "Task",
       "InputPath": "$.loanDetails",
       "ResultPath": "$.declinedEvent",
-      "Resource": "${Token[TOKEN.673]}"
+      "Resource": "${Token[TOKEN.672]}"
     },
     "PublishDeclinedEvent": {
       "End": true,
       "Type": "Task",
-      "Resource": "arn:${Token[AWS.Partition.7]}:states:::sns:publish",
+      "Resource": "arn:${Token[AWS.Partition.6]}:states:::sns:publish",
       "Parameters": {
-        "TopicArn": "${Token[TOKEN.528]}",
+        "TopicArn": "${Token[TOKEN.527]}",
         "Message.$": "$.declinedEvent"
       }
     },
@@ -68,13 +68,13 @@
       "Type": "Task",
       "InputPath": "$.loanDetails",
       "ResultPath": "$.loanItem",
-      "Resource": "${Token[TOKEN.651]}"
+      "Resource": "${Token[TOKEN.650]}"
     },
     "PutLoanItem": {
       "End": true,
       "Type": "Task",
       "InputPath": "$.loanItem",
-      "Resource": "arn:${Token[AWS.Partition.7]}:states:::dynamodb:putItem",
+      "Resource": "arn:${Token[AWS.Partition.6]}:states:::dynamodb:putItem",
       "Parameters": {
         "Item": {
           "id": {
@@ -84,7 +84,7 @@
             "M.$": "$.loanDetails"
           }
         },
-        "TableName": "${Token[TOKEN.518]}"
+        "TableName": "${Token[TOKEN.517]}"
       }
     },
     "HandleCreditRatingError": {
@@ -97,14 +97,14 @@
       "Next": "SendErrorMessage",
       "Type": "Task",
       "ResultPath": "$.Cause",
-      "Resource": "${Token[TOKEN.695]}"
+      "Resource": "${Token[TOKEN.694]}"
     },
     "SendErrorMessage": {
       "Next": "CreditRatingFailure",
       "Type": "Task",
-      "Resource": "arn:${Token[AWS.Partition.7]}:states:::sqs:sendMessage",
+      "Resource": "arn:${Token[AWS.Partition.6]}:states:::sqs:sendMessage",
       "Parameters": {
-        "QueueUrl": "${Token[TOKEN.539]}",
+        "QueueUrl": "${Token[TOKEN.538]}",
         "MessageBody": {
           "Source.$": "$.Source",
           "Cause.$": "$.Cause"
