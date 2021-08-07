@@ -5,7 +5,7 @@ import path from 'path';
 
 export default function writeGraphJson(stateMachine: StateMachineWithGraph): void {
   //
-  const stateMachinePath = path.join(__dirname, 'stateMachines');
+  const stateMachinePath = path.join(__dirname, '..', '..', '.stateMachineASL');
 
   if (!fs.existsSync(stateMachinePath)) fs.mkdirSync(stateMachinePath);
 

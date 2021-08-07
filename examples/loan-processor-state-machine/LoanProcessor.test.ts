@@ -101,7 +101,7 @@ describe('LoanProcessor Tests', () => {
   it('handles bad Credit Rating', async () => {
     // Arrange
 
-    const goodResponse: CreditRatingResponse = {
+    const badResponse: CreditRatingResponse = {
       value: CreditRating.Bad,
     };
 
@@ -110,7 +110,7 @@ describe('LoanProcessor Tests', () => {
       mockResponses: {
         [LoanProcessorTestStack.CreditRatingFunctionId]: [
           {
-            payload: goodResponse,
+            payload: badResponse,
           },
         ],
       },
