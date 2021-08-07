@@ -17,8 +17,7 @@ export default class StateMachineTestClient {
   }
 
   async startExecutionAsync(input: Record<string, any>): Promise<void> {
-    if (this.executionArn !== undefined) throw new Error('this.executionArn !== undefined');
-
+    //
     const params: StartExecutionInput = {
       stateMachineArn: this.stateMachineArn,
       input: JSON.stringify(input),

@@ -10,11 +10,12 @@ import * as lambda from '@aws-cdk/aws-lambda';
 import * as dynamodb from '@aws-cdk/aws-dynamodb';
 import * as sns from '@aws-cdk/aws-sns';
 import * as sqs from '@aws-cdk/aws-sqs';
+import { CreditRating } from './Contracts';
 
 export interface LoanProcessorStateMachineProps extends Omit<sfn.StateMachineProps, 'definition'> {
   creditRatingFunction: lambda.IFunction;
   acceptTable?: dynamodb.ITable;
-  declineTopic?: sns.ITopic;
+  declinedTopic: sns.ITopic;
   errorQueue: sqs.IQueue;
 }
 
@@ -46,6 +47,39 @@ export default class LoanProcessorStateMachine extends StateMachineWithGraph {
             catches: [{ handler: 'HandleCreditRatingError' }],
           })
 
+          .choice('CheckCreditRating', {
+            choices: [
+              {
+                when: sfn.Condition.stringEquals('$.creditRating', CreditRating.Good),
+                next: 'AcceptLoan',
+              },
+            ],
+            otherwise: 'DeclineLoan',
+          })
+
+          .pass('AcceptLoan')
+          .end()
+
+          .pass('DeclineLoan')
+          .lambdaInvoke('BuildDeclinedEvent', {
+            lambdaFunction: new lambdaNodejs.NodejsFunction(
+              definitionScope,
+              `BuildDeclinedEventFunction`,
+              {
+                runtime: lambda.Runtime.NODEJS_14_X,
+                entry: functionEntry,
+                handler: 'buildDeclinedEventHandler',
+              }
+            ),
+            inputPath: '$.loanDetails',
+            resultPath: '$.declinedEvent',
+          })
+          .perform(
+            new sfnTasks.SnsPublish(definitionScope, 'PublishDeclinedEvent', {
+              topic: props.declinedTopic,
+              message: sfn.TaskInput.fromJsonPathAt('$.declinedEvent'),
+            })
+          )
           .end()
 
           .pass('HandleCreditRatingError', {
@@ -76,7 +110,7 @@ export default class LoanProcessorStateMachine extends StateMachineWithGraph {
             })
           )
 
-          .fail('CreditRatingFail', {
+          .fail('CreditRatingFailure', {
             cause: LoanProcessorStateMachine.CreditRatingErrorSource,
           })
 

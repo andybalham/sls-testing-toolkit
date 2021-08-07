@@ -11,6 +11,16 @@ export interface CreditRatingRequest {
   postcode: string;
 }
 
+export enum CreditRating {
+  Good = 'GOOD',
+  Bad = 'BAD',
+}
+
 export interface CreditRatingResponse {
-  value: 'GOOD' | 'POOR' | 'BAD';
+  value: CreditRating;
+}
+
+export interface EmailEvent {
+  email: string;
+  message: string;
 }

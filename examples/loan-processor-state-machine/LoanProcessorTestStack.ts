@@ -1,6 +1,7 @@
 /* eslint-disable no-new */
 import * as cdk from '@aws-cdk/core';
 import * as sqs from '@aws-cdk/aws-sqs';
+import * as sns from '@aws-cdk/aws-sns';
 import { UnitTestStack } from '../../src';
 import LoanProcessorStateMachine from './LoanProcessorStateMachine';
 import writeGraphJson from './writeGraphJson';
@@ -13,6 +14,8 @@ export default class LoanProcessorTestStack extends UnitTestStack {
 
   static readonly ErrorQueueId = 'ErrorQueue';
 
+  static readonly DeclinedEventSubscriberId = 'DeclinedEventSubscriber';
+
   static readonly ErrorQueueConsumerId = 'ErrorQueueConsumer';
 
   static readonly LoanProcessorStateMachineId = 'LoanProcessorStateMachine';
@@ -23,9 +26,16 @@ export default class LoanProcessorTestStack extends UnitTestStack {
       testResourceTagKey: LoanProcessorTestStack.ResourceTagKey,
       testFunctionIds: [
         LoanProcessorTestStack.CreditRatingFunctionId,
+        LoanProcessorTestStack.DeclinedEventSubscriberId,
         LoanProcessorTestStack.ErrorQueueConsumerId,
       ],
     });
+
+    // Declined topic and subscriber
+
+    const declinedTopic = new sns.Topic(this, 'DeclinedTopic');
+
+    this.addEventSubscriber(declinedTopic, LoanProcessorTestStack.DeclinedEventSubscriberId);
 
     // Error queue and consumer
 
@@ -34,10 +44,7 @@ export default class LoanProcessorTestStack extends UnitTestStack {
       visibilityTimeout: cdk.Duration.seconds(3),
     });
 
-    this.addMessageConsumer(
-      errorQueue,
-      LoanProcessorTestStack.ErrorQueueConsumerId
-    );
+    this.addMessageConsumer(errorQueue, LoanProcessorTestStack.ErrorQueueConsumerId);
 
     // SUT
 
@@ -46,7 +53,8 @@ export default class LoanProcessorTestStack extends UnitTestStack {
       LoanProcessorTestStack.LoanProcessorStateMachineId,
       {
         creditRatingFunction: this.testFunctions[LoanProcessorTestStack.CreditRatingFunctionId],
-        errorQueue
+        errorQueue,
+        declinedTopic,
       }
     );
 

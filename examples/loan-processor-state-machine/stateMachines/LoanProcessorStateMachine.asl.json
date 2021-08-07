@@ -2,7 +2,7 @@
   "StartAt": "GetCreditRating",
   "States": {
     "GetCreditRating": {
-      "End": true,
+      "Next": "CheckCreditRating",
       "Retry": [
         {
           "ErrorEquals": [
@@ -28,6 +28,41 @@
         "postcode.$": "$.loanDetails.postcode"
       }
     },
+    "CheckCreditRating": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.creditRating",
+          "StringEquals": "GOOD",
+          "Next": "AcceptLoan"
+        }
+      ],
+      "Default": "DeclineLoan"
+    },
+    "DeclineLoan": {
+      "Type": "Pass",
+      "Next": "BuildDeclinedEvent"
+    },
+    "BuildDeclinedEvent": {
+      "Next": "PublishDeclinedEvent",
+      "Type": "Task",
+      "InputPath": "$.loanDetails",
+      "ResultPath": "$.declinedEvent",
+      "Resource": "${Token[TOKEN.588]}"
+    },
+    "PublishDeclinedEvent": {
+      "End": true,
+      "Type": "Task",
+      "Resource": "arn:${Token[AWS.Partition.5]}:states:::sns:publish",
+      "Parameters": {
+        "TopicArn": "${Token[TOKEN.487]}",
+        "Message.$": "$.declinedEvent"
+      }
+    },
+    "AcceptLoan": {
+      "Type": "Pass",
+      "End": true
+    },
     "HandleCreditRatingError": {
       "Type": "Pass",
       "Result": "CreditRating",
@@ -38,21 +73,21 @@
       "Next": "SendErrorMessage",
       "Type": "Task",
       "ResultPath": "$.Cause",
-      "Resource": "${Token[TOKEN.530]}"
+      "Resource": "${Token[TOKEN.610]}"
     },
     "SendErrorMessage": {
-      "Next": "CreditRatingFail",
+      "Next": "CreditRatingFailure",
       "Type": "Task",
       "Resource": "arn:${Token[AWS.Partition.5]}:states:::sqs:sendMessage",
       "Parameters": {
-        "QueueUrl": "${Token[TOKEN.462]}",
+        "QueueUrl": "${Token[TOKEN.498]}",
         "MessageBody": {
           "Source.$": "$.Source",
           "Cause.$": "$.Cause"
         }
       }
     },
-    "CreditRatingFail": {
+    "CreditRatingFailure": {
       "Type": "Fail",
       "Cause": "CreditRating"
     }
