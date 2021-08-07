@@ -2,15 +2,21 @@
 import * as cdk from '@aws-cdk/core';
 import * as sqs from '@aws-cdk/aws-sqs';
 import * as sns from '@aws-cdk/aws-sns';
+import * as dynamodb from '@aws-cdk/aws-dynamodb';
 import { UnitTestStack } from '../../src';
 import LoanProcessorStateMachine from './LoanProcessorStateMachine';
 import writeGraphJson from './writeGraphJson';
+import { LoanTableSchema } from './ExternalContracts';
 
 export default class LoanProcessorTestStack extends UnitTestStack {
   //
   static readonly ResourceTagKey = 'LoanProcessorTestStack';
 
   static readonly CreditRatingFunctionId = 'CreditRatingFunction';
+
+  static readonly LoanTableId = 'LoanTable';
+
+  static readonly LoanTableSubscriberId = 'LoanTableSubscriber';
 
   static readonly ErrorQueueId = 'ErrorQueue';
 
@@ -26,10 +32,26 @@ export default class LoanProcessorTestStack extends UnitTestStack {
       testResourceTagKey: LoanProcessorTestStack.ResourceTagKey,
       testFunctionIds: [
         LoanProcessorTestStack.CreditRatingFunctionId,
+        LoanProcessorTestStack.LoanTableSubscriberId,
         LoanProcessorTestStack.DeclinedEventSubscriberId,
         LoanProcessorTestStack.ErrorQueueConsumerId,
       ],
     });
+
+    // Loan table and subscriber
+
+    const loanTable = new dynamodb.Table(this, LoanProcessorTestStack.LoanTableId, {
+      ...LoanTableSchema,
+      ...{
+        billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+        stream: dynamodb.StreamViewType.KEYS_ONLY,
+        removalPolicy: cdk.RemovalPolicy.DESTROY,
+      },
+    });
+
+    this.addTestResourceTag(loanTable, LoanProcessorTestStack.LoanTableId);
+
+    this.addTableSubscriber(loanTable, LoanProcessorTestStack.LoanTableSubscriberId);
 
     // Declined topic and subscriber
 
@@ -53,8 +75,9 @@ export default class LoanProcessorTestStack extends UnitTestStack {
       LoanProcessorTestStack.LoanProcessorStateMachineId,
       {
         creditRatingFunction: this.testFunctions[LoanProcessorTestStack.CreditRatingFunctionId],
-        errorQueue,
+        loanTable,
         declinedTopic,
+        errorQueue,
       }
     );
 

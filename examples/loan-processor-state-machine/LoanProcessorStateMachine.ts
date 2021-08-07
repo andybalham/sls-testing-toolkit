@@ -10,11 +10,13 @@ import * as lambda from '@aws-cdk/aws-lambda';
 import * as dynamodb from '@aws-cdk/aws-dynamodb';
 import * as sns from '@aws-cdk/aws-sns';
 import * as sqs from '@aws-cdk/aws-sqs';
-import { CreditRating } from './Contracts';
+import { DynamoAttributeValue } from '@aws-cdk/aws-stepfunctions-tasks';
+import { JsonPath } from '@aws-cdk/aws-stepfunctions';
+import { CreditRating } from './ExternalContracts';
 
 export interface LoanProcessorStateMachineProps extends Omit<sfn.StateMachineProps, 'definition'> {
   creditRatingFunction: lambda.IFunction;
-  acceptTable?: dynamodb.ITable;
+  loanTable: dynamodb.ITable;
   declinedTopic: sns.ITopic;
   errorQueue: sqs.IQueue;
 }
@@ -50,7 +52,7 @@ export default class LoanProcessorStateMachine extends StateMachineWithGraph {
           .choice('CheckCreditRating', {
             choices: [
               {
-                when: sfn.Condition.stringEquals('$.creditRating', CreditRating.Good),
+                when: sfn.Condition.stringEquals('$.creditRating.value', CreditRating.Good),
                 next: 'AcceptLoan',
               },
             ],
@@ -58,6 +60,29 @@ export default class LoanProcessorStateMachine extends StateMachineWithGraph {
           })
 
           .pass('AcceptLoan')
+          .lambdaInvoke('BuildLoanItem', {
+            lambdaFunction: new lambdaNodejs.NodejsFunction(
+              definitionScope,
+              `BuildLoanItemFunction`,
+              {
+                runtime: lambda.Runtime.NODEJS_14_X,
+                entry: functionEntry,
+                handler: 'buildLoanItemHandler',
+              }
+            ),
+            inputPath: '$.loanDetails',
+            resultPath: '$.loanItem',
+          })
+          .perform(
+            new sfnTasks.DynamoPutItem(definitionScope, 'PutLoanItem', {
+              inputPath: '$.loanItem',
+              table: props.loanTable,
+              item: {
+                id: DynamoAttributeValue.fromString(JsonPath.stringAt('$.id')),
+                loanDetails: DynamoAttributeValue.mapFromJsonPath('$.loanDetails'),
+              },
+            })
+          )
           .end()
 
           .pass('DeclineLoan')

@@ -14,7 +14,7 @@ export default class TestObservation {
     return observations.filter((o) => o.observerId === observerId);
   }
 
-  static consoleLog(observations: TestObservation[]): void {
+  static consoleLogAll(observations: TestObservation[]): void {
     observations.forEach((observation) => {
       // eslint-disable-next-line no-console
       console.log(JSON.stringify({ o: observation }, null, 2));

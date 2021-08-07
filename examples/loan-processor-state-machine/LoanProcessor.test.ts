@@ -1,9 +1,20 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-unused-expressions */
-import { SNSEvent, SQSEvent } from 'aws-lambda';
+import { DynamoDBStreamEvent, SNSEvent, SQSEvent } from 'aws-lambda';
 import { expect } from 'chai';
-import { StateMachineTestClient, TestObservation, UnitTestClient } from '../../src';
-import { CreditRating, CreditRatingResponse, EmailEvent, LoanDetails } from './Contracts';
+import {
+  StateMachineTestClient,
+  TableTestClient,
+  TestObservation,
+  UnitTestClient,
+} from '../../src';
+import {
+  CreditRating,
+  CreditRatingResponse,
+  EmailEvent,
+  LoanDetails,
+  LoanItem,
+} from './ExternalContracts';
 import LoanProcessorStateMachine from './LoanProcessorStateMachine';
 import LoanProcessorTestStack from './LoanProcessorTestStack';
 
@@ -15,14 +26,16 @@ describe('LoanProcessor Tests', () => {
   });
 
   let sut: StateMachineTestClient;
+  let loanTable: TableTestClient;
 
   before(async () => {
     await testClient.initialiseClientAsync();
     sut = testClient.getStateMachineTestClient(LoanProcessorTestStack.LoanProcessorStateMachineId);
+    loanTable = testClient.getTableTestClient(LoanProcessorTestStack.LoanTableId);
   });
 
-  beforeEach(async () => {
-    await testClient.initialiseTestAsync();
+  after(async () => {
+    await loanTable.clearAllItemsAsync();
   });
 
   it('handles good Credit Rating', async () => {
@@ -56,8 +69,9 @@ describe('LoanProcessor Tests', () => {
 
     // Await
 
-    const { timedOut } = await testClient.pollTestAsync({
-      until: async () => sut.isExecutionFinishedAsync(),
+    const { observations, timedOut } = await testClient.pollTestAsync({
+      until: async (o) =>
+        TestObservation.getCountById(o, LoanProcessorTestStack.LoanTableSubscriberId) > 0,
     });
 
     // Assert
@@ -66,10 +80,25 @@ describe('LoanProcessor Tests', () => {
 
     expect(await sut.getStatusAsync()).to.equal('SUCCEEDED');
 
-    // TODO 07Aug21: Assert loan detail saved
+    const loanTableEvents = TestObservation.filterById(
+      observations,
+      LoanProcessorTestStack.LoanTableSubscriberId
+    ).map((o) => o.data as DynamoDBStreamEvent);
+
+    expect(loanTableEvents.length).to.be.equal(1);
+
+    const loanTableEventRecord = loanTableEvents[0].Records[0];
+
+    expect(loanTableEventRecord.eventName).to.equal('INSERT');
+
+    const loanItem = await loanTable.getItemByEventKeyAsync<LoanItem>(
+      loanTableEventRecord.dynamodb?.Keys
+    );
+
+    expect(loanItem?.loanDetails).to.deep.equal(loanDetails);
   });
 
-  it.only('handles bad Credit Rating', async () => {
+  it('handles bad Credit Rating', async () => {
     // Arrange
 
     const goodResponse: CreditRatingResponse = {
@@ -128,6 +157,10 @@ describe('LoanProcessor Tests', () => {
   it('handles Credit Rating max attempts', async () => {
     // Arrange
 
+    const badResponse: CreditRatingResponse = {
+      value: CreditRating.Bad,
+    };
+
     await testClient.initialiseTestAsync({
       testId: 'credit-rating-max-attempts',
       mockResponses: {
@@ -135,6 +168,9 @@ describe('LoanProcessor Tests', () => {
           {
             error: 'Max attempts',
             repeat: LoanProcessorStateMachine.CreditRatingMaxAttempts,
+          },
+          {
+            payload: badResponse,
           },
         ],
       },

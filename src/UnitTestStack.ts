@@ -29,10 +29,7 @@ export default abstract class UnitTestStack extends cdk.Stack {
 
     this.testResourceTagKey = props.testResourceTagKey;
 
-    if (
-      props.unitTestTable ||
-      (props.testFunctionIds?.length ?? 0) > 0
-    ) {
+    if (props.unitTestTable || (props.testFunctionIds?.length ?? 0) > 0) {
       //
       // Test table
 
@@ -74,6 +71,22 @@ export default abstract class UnitTestStack extends cdk.Stack {
     const topicObserverFunction = this.testFunctions[testFunctionId];
 
     topic.addSubscription(new snsSubs.LambdaSubscription(topicObserverFunction));
+  }
+
+  addTableSubscriber(
+    table: dynamodb.ITable,
+    testFunctionId: string,
+    props?: lambdaEventSources.DynamoEventSourceProps
+  ): void {
+    //
+    this.testFunctions[testFunctionId].addEventSource(
+      new lambdaEventSources.DynamoEventSource(table, {
+        ...{
+          startingPosition: lambda.StartingPosition.TRIM_HORIZON,
+        },
+        ...props,
+      })
+    );
   }
 
   private newTestFunction(functionId: string): lambda.IFunction {

@@ -1,3 +1,5 @@
+import * as dynamodb from '@aws-cdk/aws-dynamodb';
+
 export interface LoanDetails {
   firstName: string;
   lastName: string;
@@ -24,3 +26,12 @@ export interface EmailEvent {
   email: string;
   message: string;
 }
+
+export interface LoanItem {
+  id: string;
+  loanDetails: LoanDetails;
+}
+
+export const LoanTableSchema = {
+  partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
+};

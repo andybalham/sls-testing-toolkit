@@ -21,7 +21,7 @@
       ],
       "Type": "Task",
       "ResultPath": "$.creditRating",
-      "Resource": "${Token[TOKEN.422]}",
+      "Resource": "${Token[TOKEN.424]}",
       "Parameters": {
         "firstName.$": "$.loanDetails.firstName",
         "lastName.$": "$.loanDetails.lastName",
@@ -32,7 +32,7 @@
       "Type": "Choice",
       "Choices": [
         {
-          "Variable": "$.creditRating",
+          "Variable": "$.creditRating.value",
           "StringEquals": "GOOD",
           "Next": "AcceptLoan"
         }
@@ -48,20 +48,44 @@
       "Type": "Task",
       "InputPath": "$.loanDetails",
       "ResultPath": "$.declinedEvent",
-      "Resource": "${Token[TOKEN.588]}"
+      "Resource": "${Token[TOKEN.673]}"
     },
     "PublishDeclinedEvent": {
       "End": true,
       "Type": "Task",
-      "Resource": "arn:${Token[AWS.Partition.5]}:states:::sns:publish",
+      "Resource": "arn:${Token[AWS.Partition.7]}:states:::sns:publish",
       "Parameters": {
-        "TopicArn": "${Token[TOKEN.487]}",
+        "TopicArn": "${Token[TOKEN.528]}",
         "Message.$": "$.declinedEvent"
       }
     },
     "AcceptLoan": {
       "Type": "Pass",
-      "End": true
+      "Next": "BuildLoanItem"
+    },
+    "BuildLoanItem": {
+      "Next": "PutLoanItem",
+      "Type": "Task",
+      "InputPath": "$.loanDetails",
+      "ResultPath": "$.loanItem",
+      "Resource": "${Token[TOKEN.651]}"
+    },
+    "PutLoanItem": {
+      "End": true,
+      "Type": "Task",
+      "InputPath": "$.loanItem",
+      "Resource": "arn:${Token[AWS.Partition.7]}:states:::dynamodb:putItem",
+      "Parameters": {
+        "Item": {
+          "id": {
+            "S.$": "$.id"
+          },
+          "loanDetails": {
+            "M.$": "$.loanDetails"
+          }
+        },
+        "TableName": "${Token[TOKEN.518]}"
+      }
     },
     "HandleCreditRatingError": {
       "Type": "Pass",
@@ -73,14 +97,14 @@
       "Next": "SendErrorMessage",
       "Type": "Task",
       "ResultPath": "$.Cause",
-      "Resource": "${Token[TOKEN.610]}"
+      "Resource": "${Token[TOKEN.695]}"
     },
     "SendErrorMessage": {
       "Next": "CreditRatingFailure",
       "Type": "Task",
-      "Resource": "arn:${Token[AWS.Partition.5]}:states:::sqs:sendMessage",
+      "Resource": "arn:${Token[AWS.Partition.7]}:states:::sqs:sendMessage",
       "Parameters": {
-        "QueueUrl": "${Token[TOKEN.498]}",
+        "QueueUrl": "${Token[TOKEN.539]}",
         "MessageBody": {
           "Source.$": "$.Source",
           "Cause.$": "$.Cause"
