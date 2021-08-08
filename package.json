@@ -43,16 +43,16 @@
     "@types/node": "^14.14.31",
     "@typescript-eslint/eslint-plugin": "^4.28.5",
     "@typescript-eslint/parser": "^4.28.5",
-    "@aws-cdk/aws-dynamodb": "^1.116.0",
-    "@aws-cdk/aws-lambda": "^1.116.0",
-    "@aws-cdk/aws-lambda-event-sources": "^1.116.0",
-    "@aws-cdk/aws-lambda-nodejs": "^1.116.0",
-    "@aws-cdk/aws-sns": "^1.116.0",
-    "@aws-cdk/aws-sns-subscriptions": "^1.116.0",
-    "@aws-cdk/aws-sqs": "^1.116.0",
-    "@aws-cdk/aws-stepfunctions": "^1.116.0",
-    "@aws-cdk/aws-stepfunctions-tasks": "^1.116.0",
-    "@aws-cdk/core": "^1.116.0",
+    "@aws-cdk/aws-dynamodb": "^1.0.0",
+    "@aws-cdk/aws-lambda": "^1.0.0",
+    "@aws-cdk/aws-lambda-event-sources": "^1.0.0",
+    "@aws-cdk/aws-lambda-nodejs": "^1.0.0",
+    "@aws-cdk/aws-sns": "^1.0.0",
+    "@aws-cdk/aws-sns-subscriptions": "^1.0.0",
+    "@aws-cdk/aws-sqs": "^1.0.0",
+    "@aws-cdk/aws-stepfunctions": "^1.0.0",
+    "@aws-cdk/aws-stepfunctions-tasks": "^1.0.0",
+    "@aws-cdk/core": "^1.0.0",
     "aws-sdk": "^2.958.0",
     "chai": "^4.3.4",
     "esbuild": "^0.12.17",
@@ -75,19 +75,19 @@
     "typescript": "^4.3.5"
   },
   "peerDependencies": {
-    "@aws-cdk/aws-dynamodb": "^1.116.0",
-    "@aws-cdk/aws-lambda": "^1.116.0",
-    "@aws-cdk/aws-lambda-event-sources": "^1.116.0",
-    "@aws-cdk/aws-lambda-nodejs": "^1.116.0",
-    "@aws-cdk/aws-sns": "^1.116.0",
-    "@aws-cdk/aws-sns-subscriptions": "^1.116.0",
-    "@aws-cdk/aws-sqs": "^1.116.0",
-    "@aws-cdk/aws-stepfunctions": "^1.116.0",
-    "@aws-cdk/aws-stepfunctions-tasks": "^1.116.0",
-    "@aws-cdk/core": "^1.116.0"
+    "@aws-cdk/aws-dynamodb": "^1.0.0",
+    "@aws-cdk/aws-lambda": "^1.0.0",
+    "@aws-cdk/aws-lambda-event-sources": "^1.0.0",
+    "@aws-cdk/aws-lambda-nodejs": "^1.0.0",
+    "@aws-cdk/aws-sns": "^1.0.0",
+    "@aws-cdk/aws-sns-subscriptions": "^1.0.0",
+    "@aws-cdk/aws-sqs": "^1.0.0",
+    "@aws-cdk/aws-stepfunctions": "^1.0.0",
+    "@aws-cdk/aws-stepfunctions-tasks": "^1.0.0",
+    "@aws-cdk/core": "^1.0.0"
   },
   "dependencies": {
     "dotenv": "^10.0.0",
-    "nanoid": "^3.1.23"
+    "nanoid": "^3.0.0"
   }
 }
