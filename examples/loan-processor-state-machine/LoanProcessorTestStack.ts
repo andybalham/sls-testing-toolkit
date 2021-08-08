@@ -10,7 +10,7 @@ import { LoanTableSchema } from './ExternalContracts';
 
 export default class LoanProcessorTestStack extends UnitTestStack {
   //
-  static readonly ResourceTagKey = 'LoanProcessorTestStack';
+  static readonly ResourceTagKey = `LoanProcessorTestStack${process.env.TEST_STACK_SCOPE ?? ''}`;
 
   static readonly CreditRatingFunctionId = 'CreditRatingFunction';
 

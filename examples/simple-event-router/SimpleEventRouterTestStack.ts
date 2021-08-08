@@ -5,7 +5,9 @@ import SimpleEventRouterConstruct from './SimpleEventRouterConstruct';
 
 export default class SimpleEventRouterTestStack extends UnitTestStack {
   //
-  static readonly ResourceTagKey = 'SimpleEventRouterTestStack';
+  static readonly ResourceTagKey = `SimpleEventRouterTestStack${
+    process.env.TEST_STACK_SCOPE ?? ''
+  }`;
 
   static readonly TestInputTopicId = 'TestInputTopic';
 
