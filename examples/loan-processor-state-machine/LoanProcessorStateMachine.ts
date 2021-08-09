@@ -1,6 +1,5 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import * as lambdaNodejs from '@aws-cdk/aws-lambda-nodejs';
-import path from 'path';
 import StateMachineBuilder from '@andybalham/state-machine-builder';
 import StateMachineWithGraph from '@andybalham/state-machine-with-graph';
 import * as cdk from '@aws-cdk/core';
@@ -20,8 +19,6 @@ export interface LoanProcessorStateMachineProps extends Omit<sfn.StateMachinePro
   declinedTopic: sns.ITopic;
   errorQueue: sqs.IQueue;
 }
-
-const functionEntry = path.join(__dirname, '.', 'stateMachineFunctions.ts');
 
 export default class LoanProcessorStateMachine extends StateMachineWithGraph {
   //
@@ -63,12 +60,7 @@ export default class LoanProcessorStateMachine extends StateMachineWithGraph {
           .lambdaInvoke('BuildLoanItem', {
             lambdaFunction: new lambdaNodejs.NodejsFunction(
               definitionScope,
-              `BuildLoanItemFunction`,
-              {
-                runtime: lambda.Runtime.NODEJS_14_X,
-                entry: functionEntry,
-                handler: 'buildLoanItemHandler',
-              }
+              'BuildLoanItemFunction'
             ),
             inputPath: '$.loanDetails',
             resultPath: '$.loanItem',
@@ -89,12 +81,7 @@ export default class LoanProcessorStateMachine extends StateMachineWithGraph {
           .lambdaInvoke('BuildDeclinedEvent', {
             lambdaFunction: new lambdaNodejs.NodejsFunction(
               definitionScope,
-              `BuildDeclinedEventFunction`,
-              {
-                runtime: lambda.Runtime.NODEJS_14_X,
-                entry: functionEntry,
-                handler: 'buildDeclinedEventHandler',
-              }
+              'BuildDeclinedEventFunction'
             ),
             inputPath: '$.loanDetails',
             resultPath: '$.declinedEvent',
@@ -115,12 +102,7 @@ export default class LoanProcessorStateMachine extends StateMachineWithGraph {
           .lambdaInvoke('ExtractErrorCause', {
             lambdaFunction: new lambdaNodejs.NodejsFunction(
               definitionScope,
-              `ExtractErrorCauseFunction`,
-              {
-                runtime: lambda.Runtime.NODEJS_14_X,
-                entry: functionEntry,
-                handler: 'extractErrorClauseHandler',
-              }
+              'ExtractErrorCauseFunction'
             ),
             resultPath: '$.Cause',
           })
