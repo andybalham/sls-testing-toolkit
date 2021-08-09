@@ -48,10 +48,24 @@ export default class UnitTestClient {
 
   // Static ------------------------------------------------------------------
 
+  private static region?: string;
+
   static getRegion(): string {
-    if (process.env.AWS_REGION === undefined)
-      throw new Error('process.env.AWS_REGION === undefined');
-    return process.env.AWS_REGION;
+    //
+    if (this.region) return this.region;
+
+    const argRegionValue = UnitTestClient.getArgSwitchValue('region');
+
+    if (argRegionValue !== undefined) {
+      this.region = argRegionValue;
+    } else {
+      this.region = process.env.AWS_REGION;
+    }
+
+    if (!this.region)
+      throw new Error('Region not specified as argument (--region) or environment file (AWS_REGION)');
+
+    return this.region;
   }
 
   static async sleepAsync(seconds: number): Promise<void> {
@@ -411,6 +425,24 @@ export default class UnitTestClient {
   }
 
   // Private --------------------------------------------------------
+
+  private static getArgSwitchValue(switchKey: string): string | undefined {
+    //
+    let switchValue: string | undefined;
+
+    const switchKeyIndex = process.argv.findIndex((a) => a === `--${switchKey}`);
+
+    if (switchKeyIndex !== -1) {
+      //
+      if (switchKeyIndex === process.argv.length - 1) {
+        throw new Error(`Switch specified, but no corresponding value provided: ${switchKey}`);
+      }
+
+      switchValue = process.argv[switchKeyIndex + 1];
+    }
+
+    return switchValue;
+  }
 
   private getResourceNameFromArn(targetStackId: string, arnPattern: RegExp): string | undefined {
     //
