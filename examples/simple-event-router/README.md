@@ -20,7 +20,7 @@ This is a plain CDK construct. It doesn't have any dependency on `sls-testing-to
 
 ## `SimpleEventRouterTestStack`
 
-The test stack sub-classes the `UnitTestStack` from the `sls-testing-toolkit` and declares the following constants. These are used to tag the test resources that the unit tests will need to interact with.
+The test stack sub-classes the `IntegrationTestStack` from the `sls-testing-toolkit` and declares the following constants. These are used to tag the test resources that the unit tests will need to interact with.
 
 ```TypeScript
 static readonly ResourceTagKey = 'SimpleEventRouterTestStack';
@@ -46,7 +46,7 @@ super(scope, id, {
 
 The value specified `testResourceTagKey` is used for the key when tagging the test resources. It should be unique to the stack, to avoid clashes with other tests.
 
-For each value in `testFunctionIds`, `UnitTestStack` will create a Lambda function that will record all received events in a DynamoDB table.
+For each value in `testFunctionIds`, `IntegrationTestStack` will create a Lambda function that will record all received events in a DynamoDB table.
 
 Next is a test input topic to publish events to, to drive the functionality of the construct.
 
@@ -92,18 +92,18 @@ Note, the `sls-testing-toolkit` requires that there is a `.env` file with an ent
 AWS_REGION=eu-west-2
 ```
 
-The unit tests interact with the deployed resources via a `UnitTestClient` instance. This is instantiated with the `testResourceTagKey` and initialised with a call to `initialiseClientAsync`. Once initialised, a call to `getTopicTestClient` returns a client that can be used to publish events to the topic.
+The unit tests interact with the deployed resources via a `IntegrationTestClient` instance. This is instantiated with the `testResourceTagKey` and initialised with a call to `initialiseClientAsync`. Once initialised, a call to `getSNSTestClient` returns a client that can be used to publish events to the topic.
 
 ```TypeScript
-const testClient = new UnitTestClient({
+const testClient = new IntegrationTestClient({
   testResourceTagKey: SimpleEventRouterTestStack.ResourceTagKey,
 });
 
-let testInputTopic: TopicTestClient;
+let testInputTopic: SNSTestClient;
 
 before(async () => {
   await testClient.initialiseClientAsync();
-  testInputTopic = testClient.getTopicTestClient(SimpleEventRouterTestStack.TestInputTopicId);
+  testInputTopic = testClient.getSNSTestClient(SimpleEventRouterTestStack.TestInputTopicId);
 });
 
 beforeEach(async () => {

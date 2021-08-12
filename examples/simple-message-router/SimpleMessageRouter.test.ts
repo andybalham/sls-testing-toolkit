@@ -1,21 +1,21 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import { SQSEvent } from 'aws-lambda';
 import { expect } from 'chai';
-import { TestObservation, UnitTestClient, QueueTestClient } from '../../src';
+import { TestObservation, IntegrationTestClient, SQSTestClient } from '../../src';
 import { Message } from './Message';
 import TestStack from './SimpleMessageRouterTestStack';
 
 describe('SimpleMessageRouter Test Suite', () => {
   //
-  let testInputQueue: QueueTestClient;
+  let testInputQueue: SQSTestClient;
 
-  const testClient = new UnitTestClient({
+  const testClient = new IntegrationTestClient({
     testResourceTagKey: TestStack.ResourceTagKey,
   });
 
   before(async () => {
     await testClient.initialiseClientAsync();
-    testInputQueue = testClient.getQueueTestClient(TestStack.TestInputQueueId);
+    testInputQueue = testClient.getSQSTestClient(TestStack.TestInputQueueId);
   });
 
   beforeEach(async () => {

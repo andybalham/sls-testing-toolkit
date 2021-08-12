@@ -2,9 +2,13 @@
 import AWS from 'aws-sdk';
 import { clearAllItems, getItem } from './dynamoDb';
 
-export default class BucketTestClient {
+export default class S3TestClient {
   //
-  constructor(private region: string, private tableName: string) {}
+  readonly db: AWS.DynamoDB.DocumentClient;
+
+  constructor(private region: string, private tableName: string) {
+    this.db = new AWS.DynamoDB.DocumentClient({ region });
+  }
 
   async clearAllItemsAsync(): Promise<void> {
     await clearAllItems(this.region, this.tableName);

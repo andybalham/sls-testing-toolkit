@@ -1,21 +1,21 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import { SNSEvent } from 'aws-lambda';
 import { expect } from 'chai';
-import { TestObservation, UnitTestClient, TopicTestClient } from '../../src';
+import { TestObservation, IntegrationTestClient, SNSTestClient } from '../../src';
 import { Event } from './Event';
 import SimpleEventRouterTestStack from './SimpleEventRouterTestStack';
 
 describe('SimpleEventRouter Test Suite', () => {
   //
-  const testClient = new UnitTestClient({
+  const testClient = new IntegrationTestClient({
     testResourceTagKey: SimpleEventRouterTestStack.ResourceTagKey,
   });
 
-  let testInputTopic: TopicTestClient;
+  let testInputTopic: SNSTestClient;
 
   before(async () => {
     await testClient.initialiseClientAsync();
-    testInputTopic = testClient.getTopicTestClient(SimpleEventRouterTestStack.TestInputTopicId);
+    testInputTopic = testClient.getSNSTestClient(SimpleEventRouterTestStack.TestInputTopicId);
   });
 
   beforeEach(async () => {

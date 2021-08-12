@@ -1,9 +1,9 @@
 import * as cdk from '@aws-cdk/core';
 import * as sqs from '@aws-cdk/aws-sqs';
-import { UnitTestStack } from '../../src';
+import { IntegrationTestStack } from '../../src';
 import SimpleMessageRouterConstruct from './SimpleMessageRouterConstruct';
 
-export default class SimpleMessageRouterTestStack extends UnitTestStack {
+export default class SimpleMessageRouterTestStack extends IntegrationTestStack {
   //
   static readonly ResourceTagKey = `SimpleRouterTestStack${process.env.TEST_STACK_SCOPE ?? ''}`;
 

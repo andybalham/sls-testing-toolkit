@@ -3,10 +3,10 @@
 import { DynamoDBStreamEvent, SNSEvent, SQSEvent } from 'aws-lambda';
 import { expect } from 'chai';
 import {
-  StateMachineTestClient,
-  TableTestClient,
+  StepFunctionsTestClient,
+  DynamoDBTestClient,
   TestObservation,
-  UnitTestClient,
+  IntegrationTestClient,
 } from '../../src';
 import {
   CreditRating,
@@ -20,18 +20,18 @@ import LoanProcessorTestStack from './LoanProcessorTestStack';
 
 describe('LoanProcessor Tests', () => {
   //
-  const testClient = new UnitTestClient({
+  const testClient = new IntegrationTestClient({
     testResourceTagKey: LoanProcessorTestStack.ResourceTagKey,
     deleteLogs: true,
   });
 
-  let sut: StateMachineTestClient;
-  let loanTable: TableTestClient;
+  let sut: StepFunctionsTestClient;
+  let loanTable: DynamoDBTestClient;
 
   before(async () => {
     await testClient.initialiseClientAsync();
-    sut = testClient.getStateMachineTestClient(LoanProcessorTestStack.LoanProcessorStateMachineId);
-    loanTable = testClient.getTableTestClient(LoanProcessorTestStack.LoanTableId);
+    sut = testClient.getStepFunctionsTestClient(LoanProcessorTestStack.LoanProcessorStateMachineId);
+    loanTable = testClient.getDynamoDBTestClient(LoanProcessorTestStack.LoanTableId);
   });
 
   after(async () => {

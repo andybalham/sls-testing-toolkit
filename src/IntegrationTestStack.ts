@@ -8,39 +8,46 @@ import * as lambdaEventSources from '@aws-cdk/aws-lambda-event-sources';
 import * as lambdaNodejs from '@aws-cdk/aws-lambda-nodejs';
 import path from 'path';
 
-export interface UnitTestStackProps {
+export interface IntegrationTestStackProps {
   testResourceTagKey: string;
-  unitTestTable?: boolean;
+  integrationTestTable?: boolean;
   testFunctionIds?: string[];
 }
 
-export default abstract class UnitTestStack extends cdk.Stack {
+export default abstract class IntegrationTestStack extends cdk.Stack {
   //
   readonly testResourceTagKey: string;
 
-  static readonly UnitTestTableId = 'UnitTestTable';
+  static readonly IntegrationTestTableId = 'IntegrationTestTable';
 
-  readonly unitTestTable: dynamodb.Table;
+  readonly integrationTestTable: dynamodb.Table;
 
   readonly testFunctions: Record<string, lambda.IFunction>;
 
-  constructor(scope: cdk.Construct, id: string, props: UnitTestStackProps) {
+  constructor(scope: cdk.Construct, id: string, props: IntegrationTestStackProps) {
     super(scope, id);
 
     this.testResourceTagKey = props.testResourceTagKey;
 
-    if (props.unitTestTable || (props.testFunctionIds?.length ?? 0) > 0) {
+    if (props.integrationTestTable || (props.testFunctionIds?.length ?? 0) > 0) {
       //
       // Test table
 
-      this.unitTestTable = new dynamodb.Table(this, UnitTestStack.UnitTestTableId, {
-        partitionKey: { name: 'PK', type: dynamodb.AttributeType.STRING },
-        sortKey: { name: 'SK', type: dynamodb.AttributeType.STRING },
-        billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-        removalPolicy: cdk.RemovalPolicy.DESTROY,
-      });
+      this.integrationTestTable = new dynamodb.Table(
+        this,
+        IntegrationTestStack.IntegrationTestTableId,
+        {
+          partitionKey: { name: 'PK', type: dynamodb.AttributeType.STRING },
+          sortKey: { name: 'SK', type: dynamodb.AttributeType.STRING },
+          billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+          removalPolicy: cdk.RemovalPolicy.DESTROY,
+        }
+      );
 
-      this.addTestResourceTag(this.unitTestTable, UnitTestStack.UnitTestTableId);
+      this.addTestResourceTag(
+        this.integrationTestTable,
+        IntegrationTestStack.IntegrationTestTableId
+      );
     }
 
     this.testFunctions = {};
@@ -99,13 +106,13 @@ export default abstract class UnitTestStack extends cdk.Stack {
       handler: 'handler',
       environment: {
         FUNCTION_ID: functionId,
-        UNIT_TEST_TABLE_NAME: this.unitTestTable.tableName,
+        INTEGRATION_TEST_TABLE_NAME: this.integrationTestTable.tableName,
       },
     });
 
     this.addTestResourceTag(testFunction, functionId);
 
-    this.unitTestTable.grantReadWriteData(testFunction);
+    this.integrationTestTable.grantReadWriteData(testFunction);
 
     return testFunction;
   }

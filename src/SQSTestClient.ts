@@ -5,9 +5,9 @@ import SQS, {
   SendMessageResult,
 } from 'aws-sdk/clients/sqs';
 
-export default class QueueTestClient {
+export default class SQSTestClient {
   //
-  private readonly sqs: SQS;
+  readonly sqs: SQS;
 
   constructor(region: string, private queueUrl: string) {
     this.sqs = new SQS({ region });

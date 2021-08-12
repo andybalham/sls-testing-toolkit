@@ -7,11 +7,11 @@ import {
   FunctionStateTestItem,
   ObservationTestItem,
   TestItemPrefix,
-} from './TestItem';
+} from './TestItems';
 import TestObservation from './TestObservation';
 import { TestProps } from './TestProps';
 
-const unitTestTableName = process.env.UNIT_TEST_TABLE_NAME;
+const integrationTestTableName = process.env.INTEGRATION_TEST_TABLE_NAME;
 
 const documentClient = new DocumentClient();
 
@@ -19,11 +19,12 @@ export default class TestFunctionClient {
   //
   async getTestPropsAsync(): Promise<TestProps> {
     //
-    if (unitTestTableName === undefined) throw new Error('unitTestTableName === undefined');
+    if (integrationTestTableName === undefined)
+      throw new Error('integrationTestTableName === undefined');
 
     const testQueryParams /*: QueryInput */ = {
       // QueryInput results in a 'Condition parameter type does not match schema type'
-      TableName: unitTestTableName,
+      TableName: integrationTestTableName,
       KeyConditionExpression: `PK = :PK`,
       ExpressionAttributeValues: {
         ':PK': 'Current',
@@ -42,7 +43,8 @@ export default class TestFunctionClient {
 
   async recordObservationAsync(observation: TestObservation): Promise<void> {
     //
-    if (unitTestTableName === undefined) throw new Error('unitTestTableName === undefined');
+    if (integrationTestTableName === undefined)
+      throw new Error('integrationTestTableName === undefined');
 
     const { testId } = await this.getTestPropsAsync();
 
@@ -56,7 +58,7 @@ export default class TestFunctionClient {
 
     await documentClient
       .put({
-        TableName: unitTestTableName,
+        TableName: integrationTestTableName,
         Item: testOutputItem,
       })
       .promise();
@@ -67,13 +69,14 @@ export default class TestFunctionClient {
     initialState: Record<string, any>
   ): Promise<Record<string, any>> {
     //
-    if (unitTestTableName === undefined) throw new Error('unitTestTableName === undefined');
+    if (integrationTestTableName === undefined)
+      throw new Error('integrationTestTableName === undefined');
 
     const { testId } = await this.getTestPropsAsync();
 
     const functionStateQueryParams /*: QueryInput */ = {
       // QueryInput results in a 'Condition parameter type does not match schema type'
-      TableName: unitTestTableName,
+      TableName: integrationTestTableName,
       KeyConditionExpression: `PK = :PK and SK = :SK`,
       ExpressionAttributeValues: {
         ':PK': testId,
@@ -100,7 +103,8 @@ export default class TestFunctionClient {
 
   async setFunctionStateAsync(functionId: string, state: Record<string, any>): Promise<void> {
     //
-    if (unitTestTableName === undefined) throw new Error('unitTestTableName === undefined');
+    if (integrationTestTableName === undefined)
+      throw new Error('integrationTestTableName === undefined');
 
     const { testId } = await this.getTestPropsAsync();
 
@@ -112,7 +116,7 @@ export default class TestFunctionClient {
 
     await documentClient
       .put({
-        TableName: unitTestTableName,
+        TableName: integrationTestTableName,
         Item: functionStateItem,
       })
       .promise();

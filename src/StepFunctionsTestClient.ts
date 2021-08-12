@@ -6,9 +6,9 @@ import { getLastEventAsync } from './stepFunctions';
 
 const STEP_FUNCTION_STATE_RUNNING = 'RUNNING';
 
-export default class StateMachineTestClient {
+export default class StepFunctionsTestClient {
   //
-  private readonly stepFunctions: AWS.StepFunctions;
+  readonly stepFunctions: AWS.StepFunctions;
 
   executionArn: string;
 

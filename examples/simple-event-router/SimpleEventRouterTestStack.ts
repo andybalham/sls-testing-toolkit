@@ -1,9 +1,9 @@
 import * as cdk from '@aws-cdk/core';
 import * as sns from '@aws-cdk/aws-sns';
-import { UnitTestStack } from '../../src';
+import { IntegrationTestStack } from '../../src';
 import SimpleEventRouterConstruct from './SimpleEventRouterConstruct';
 
-export default class SimpleEventRouterTestStack extends UnitTestStack {
+export default class SimpleEventRouterTestStack extends IntegrationTestStack {
   //
   static readonly ResourceTagKey = `SimpleEventRouterTestStack${
     process.env.TEST_STACK_SCOPE ?? ''

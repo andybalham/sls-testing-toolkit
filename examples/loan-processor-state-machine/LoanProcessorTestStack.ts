@@ -3,12 +3,12 @@ import * as cdk from '@aws-cdk/core';
 import * as sqs from '@aws-cdk/aws-sqs';
 import * as sns from '@aws-cdk/aws-sns';
 import * as dynamodb from '@aws-cdk/aws-dynamodb';
-import { UnitTestStack } from '../../src';
+import { IntegrationTestStack } from '../../src';
 import LoanProcessorStateMachine from './LoanProcessorStateMachine';
 import writeGraphJson from './writeGraphJson';
 import { LoanTableSchema } from './ExternalContracts';
 
-export default class LoanProcessorTestStack extends UnitTestStack {
+export default class LoanProcessorTestStack extends IntegrationTestStack {
   //
   static readonly ResourceTagKey = `LoanProcessorTestStack${process.env.TEST_STACK_SCOPE ?? ''}`;
 

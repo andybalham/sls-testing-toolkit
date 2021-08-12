@@ -2,9 +2,9 @@
 import AWS from 'aws-sdk';
 import { clearAllObjects } from './s3';
 
-export default class BucketTestClient {
+export default class S3TestClient {
   //
-  private readonly s3: AWS.S3;
+  readonly s3: AWS.S3;
 
   constructor(private region: string, private bucketName: string) {
     this.s3 = new AWS.S3({ region });

@@ -1,9 +1,9 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import AWS from 'aws-sdk';
 
-export default class FunctionTestClient {
+export default class LambdaTestClient {
   //
-  private readonly lambda: AWS.Lambda;
+  readonly lambda: AWS.Lambda;
 
   constructor(region: string, private functionName: string) {
     this.lambda = new AWS.Lambda({ region });

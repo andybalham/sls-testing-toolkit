@@ -9,42 +9,42 @@ import dynamodb from 'aws-sdk/clients/dynamodb';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import AWS from 'aws-sdk';
 import dotenv from 'dotenv';
-import UnitTestStack from './UnitTestStack';
-import { CurrentTestItem, TestItemKey, TestItemPrefix } from './TestItem';
-import StateMachineTestClient from './StateMachineTestClient';
+import IntegrationTestStack from './IntegrationTestStack';
+import { CurrentTestItem, TestItemKey, TestItemPrefix } from './TestItems';
+import StepFunctionsTestClient from './StepFunctionsTestClient';
 import TestObservation from './TestObservation';
 import { TestProps } from './TestProps';
-import BucketTestClient from './BucketTestClient';
-import FunctionTestClient from './FunctionTestClient';
-import TopicTestClient from './TopicTestClient';
-import TableTestClient from './TableTestClient';
-import QueueTestClient from './QueueTestClient';
+import S3TestClient from './S3TestClient';
+import LambdaTestClient from './LambdaTestClient';
+import SNSTestClient from './SNSTestClient';
+import DynamoDBTestClient from './DynamoDBTestClient';
+import SQSTestClient from './SQSTestClient';
 import { deleteAllLogs } from './cloudwatch';
 
 dotenv.config();
 
-export interface UnitTestClientProps {
+export interface IntegrationTestClientProps {
   testResourceTagKey: string;
   deleteLogs?: boolean;
 }
 
-export default class UnitTestClient {
+export default class IntegrationTestClient {
   //
   private static readonly tagging = new AWS.ResourceGroupsTaggingAPI({
-    region: UnitTestClient.getRegion(),
+    region: IntegrationTestClient.getRegion(),
   });
 
   private static readonly db = new AWS.DynamoDB.DocumentClient({
-    region: UnitTestClient.getRegion(),
+    region: IntegrationTestClient.getRegion(),
   });
 
   testResourceTagMappingList: ResourceTagMappingList;
 
-  unitTestTableName?: string;
+  integrationTestTableName?: string;
 
   testId: string;
 
-  constructor(private props: UnitTestClientProps) {}
+  constructor(private props: IntegrationTestClientProps) {}
 
   // Static ------------------------------------------------------------------
 
@@ -54,7 +54,7 @@ export default class UnitTestClient {
     //
     if (this.region) return this.region;
 
-    const argRegionValue = UnitTestClient.getArgSwitchValue('region');
+    const argRegionValue = IntegrationTestClient.getArgSwitchValue('region');
 
     if (argRegionValue !== undefined) {
       this.region = argRegionValue;
@@ -63,7 +63,9 @@ export default class UnitTestClient {
     }
 
     if (!this.region)
-      throw new Error('Region not specified as argument (--region) or environment file (AWS_REGION)');
+      throw new Error(
+        'Region not specified as argument (--region) or environment file (AWS_REGION)'
+      );
 
     return this.region;
   }
@@ -80,7 +82,7 @@ export default class UnitTestClient {
 
     do {
       // eslint-disable-next-line no-await-in-loop
-      const resourcesOutput = await UnitTestClient.tagging
+      const resourcesOutput = await IntegrationTestClient.tagging
         .getResources({
           TagFilters: [
             {
@@ -106,22 +108,27 @@ export default class UnitTestClient {
 
   async initialiseClientAsync(): Promise<void> {
     //
-    this.testResourceTagMappingList = await UnitTestClient.getResourcesByTagKeyAsync(
+    this.testResourceTagMappingList = await IntegrationTestClient.getResourcesByTagKeyAsync(
       this.props.testResourceTagKey
     );
 
-    this.unitTestTableName = this.getTableNameByStackId(UnitTestStack.UnitTestTableId);
+    this.integrationTestTableName = this.getTableNameByStackId(
+      IntegrationTestStack.IntegrationTestTableId
+    );
 
     const testFunctionNames = this.testResourceTagMappingList
-      .filter((m) => m.ResourceARN?.match(UnitTestClient.ResourceNamePatterns.function))
-      .map((m) => m.ResourceARN?.match(UnitTestClient.ResourceNamePatterns.function)?.groups?.name);
+      .filter((m) => m.ResourceARN?.match(IntegrationTestClient.ResourceNamePatterns.function))
+      .map(
+        (m) =>
+          m.ResourceARN?.match(IntegrationTestClient.ResourceNamePatterns.function)?.groups?.name
+      );
 
     if (this.props.deleteLogs) {
       // eslint-disable-next-line no-restricted-syntax
       for await (const testFunctionName of testFunctionNames) {
         if (testFunctionName) {
           try {
-            await deleteAllLogs(UnitTestClient.getRegion(), testFunctionName);
+            await deleteAllLogs(IntegrationTestClient.getRegion(), testFunctionName);
           } catch (error) {
             // Ignore
           }
@@ -134,7 +141,7 @@ export default class UnitTestClient {
     //
     this.testId = props.testId;
 
-    if (this.unitTestTableName !== undefined) {
+    if (this.integrationTestTableName !== undefined) {
       //
       // Clear down all data related to the test
 
@@ -145,7 +152,7 @@ export default class UnitTestClient {
       do {
         const testQueryParams /*: QueryInput */ = {
           // QueryInput results in a 'Condition parameter type does not match schema type'
-          TableName: this.unitTestTableName,
+          TableName: this.integrationTestTableName,
           KeyConditionExpression: `PK = :PK`,
           ExpressionAttributeValues: {
             ':PK': this.testId,
@@ -154,7 +161,7 @@ export default class UnitTestClient {
         };
 
         // eslint-disable-next-line no-await-in-loop
-        const testQueryOutput = await UnitTestClient.db.query(testQueryParams).promise();
+        const testQueryOutput = await IntegrationTestClient.db.query(testQueryParams).promise();
 
         if (testQueryOutput.Items) {
           testItemKeys = testItemKeys.concat(testQueryOutput.Items.map((i) => i as TestItemKey));
@@ -169,8 +176,8 @@ export default class UnitTestClient {
           DeleteRequest: { Key: { PK: k.PK, SK: k.SK } },
         }));
 
-        await UnitTestClient.db
-          .batchWrite({ RequestItems: { [this.unitTestTableName]: deleteRequests } })
+        await IntegrationTestClient.db
+          .batchWrite({ RequestItems: { [this.integrationTestTableName]: deleteRequests } })
           .promise();
       }
 
@@ -184,9 +191,9 @@ export default class UnitTestClient {
         props,
       };
 
-      await UnitTestClient.db
+      await IntegrationTestClient.db
         .put({
-          TableName: this.unitTestTableName,
+          TableName: this.integrationTestTableName,
           Item: currentTestItem,
         })
         .promise();
@@ -216,7 +223,7 @@ export default class UnitTestClient {
     while (!timedOut() && !(await until(observations))) {
       //
       // eslint-disable-next-line no-await-in-loop
-      await UnitTestClient.sleepAsync(intervalSeconds);
+      await IntegrationTestClient.sleepAsync(intervalSeconds);
 
       // eslint-disable-next-line no-await-in-loop
       observations = await this.getTestObservationsAsync();
@@ -232,7 +239,7 @@ export default class UnitTestClient {
     //
     let allObservations = new Array<TestObservation>();
 
-    if (this.unitTestTableName === undefined) {
+    if (this.integrationTestTableName === undefined) {
       return allObservations;
     }
 
@@ -241,7 +248,7 @@ export default class UnitTestClient {
     do {
       const queryObservationsParams /*: QueryInput */ = {
         // QueryInput results in a 'Condition parameter type does not match schema type'
-        TableName: this.unitTestTableName,
+        TableName: this.integrationTestTableName,
         KeyConditionExpression: `PK = :PK and begins_with(SK, :SKPrefix)`,
         ExpressionAttributeValues: {
           ':PK': this.testId,
@@ -251,7 +258,7 @@ export default class UnitTestClient {
       };
 
       // eslint-disable-next-line no-await-in-loop
-      const queryObservationsOutput = await UnitTestClient.db
+      const queryObservationsOutput = await IntegrationTestClient.db
         .query(queryObservationsParams)
         .promise();
 
@@ -272,7 +279,7 @@ export default class UnitTestClient {
     return allObservations;
   }
 
-  getFunctionTestClient(functionStackId: string): FunctionTestClient {
+  getLambdaTestClient(functionStackId: string): LambdaTestClient {
     //
     const functionName = this.getFunctionNameByStackId(functionStackId);
 
@@ -280,10 +287,10 @@ export default class UnitTestClient {
       throw new Error(`The function name could not be resolved for id: ${functionStackId}`);
     }
 
-    return new FunctionTestClient(UnitTestClient.getRegion(), functionName);
+    return new LambdaTestClient(IntegrationTestClient.getRegion(), functionName);
   }
 
-  getBucketTestClient(bucketStackId: string): BucketTestClient {
+  getS3TestClient(bucketStackId: string): S3TestClient {
     //
     const bucketName = this.getBucketNameByStackId(bucketStackId);
 
@@ -291,10 +298,10 @@ export default class UnitTestClient {
       throw new Error(`The bucket name could not be resolved for id: ${bucketStackId}`);
     }
 
-    return new BucketTestClient(UnitTestClient.getRegion(), bucketName);
+    return new S3TestClient(IntegrationTestClient.getRegion(), bucketName);
   }
 
-  getTableTestClient(tableStackId: string): TableTestClient {
+  getDynamoDBTestClient(tableStackId: string): DynamoDBTestClient {
     //
     const tableName = this.getTableNameByStackId(tableStackId);
 
@@ -302,10 +309,10 @@ export default class UnitTestClient {
       throw new Error(`The table name could not be resolved for id: ${tableStackId}`);
     }
 
-    return new TableTestClient(UnitTestClient.getRegion(), tableName);
+    return new DynamoDBTestClient(IntegrationTestClient.getRegion(), tableName);
   }
 
-  getStateMachineTestClient(stateMachineStackId: string): StateMachineTestClient {
+  getStepFunctionsTestClient(stateMachineStackId: string): StepFunctionsTestClient {
     //
     const stateMachineArn = this.getResourceArnByStackId(stateMachineStackId);
 
@@ -313,10 +320,10 @@ export default class UnitTestClient {
       throw new Error(`The state machine ARN could not be resolved for id: ${stateMachineStackId}`);
     }
 
-    return new StateMachineTestClient(UnitTestClient.getRegion(), stateMachineArn);
+    return new StepFunctionsTestClient(IntegrationTestClient.getRegion(), stateMachineArn);
   }
 
-  getTopicTestClient(topicStackId: string): TopicTestClient {
+  getSNSTestClient(topicStackId: string): SNSTestClient {
     //
     const topicArn = this.getResourceArnByStackId(topicStackId);
 
@@ -324,10 +331,10 @@ export default class UnitTestClient {
       throw new Error(`The topic ARN could not be resolved for id: ${topicStackId}`);
     }
 
-    return new TopicTestClient(UnitTestClient.getRegion(), topicArn);
+    return new SNSTestClient(IntegrationTestClient.getRegion(), topicArn);
   }
 
-  getQueueTestClient(queueStackId: string): QueueTestClient {
+  getSQSTestClient(queueStackId: string): SQSTestClient {
     //
     const queueUrl = this.getQueueUrlByStackId(queueStackId);
 
@@ -335,7 +342,7 @@ export default class UnitTestClient {
       throw new Error(`The queue URL could not be resolved for id: ${queueStackId}`);
     }
 
-    return new QueueTestClient(UnitTestClient.getRegion(), queueUrl);
+    return new SQSTestClient(IntegrationTestClient.getRegion(), queueUrl);
   }
 
   getResourceArnByStackId(targetStackId: string): string | undefined {
@@ -368,14 +375,18 @@ export default class UnitTestClient {
   // https://docs.aws.amazon.com/service-authorization/latest/reference/reference_policies_actions-resources-contextkeys.html
   static readonly ResourceNamePatterns = {
     // arn:${Partition}:sqs:${Region}:${Account}:${QueueName}
-    queue: new RegExp(`^arn:aws:sqs:${UnitTestClient.getRegion()}:(?<account>[0-9]+):(?<name>.*)`),
+    queue: new RegExp(
+      `^arn:aws:sqs:${IntegrationTestClient.getRegion()}:(?<account>[0-9]+):(?<name>.*)`
+    ),
     // arn:${Partition}:s3:::${BucketName}
     bucket: /^arn:aws:s3:::(?<name>.*)/,
     // arn:${Partition}:dynamodb:${Region}:${Account}:table/${TableName}
-    table: new RegExp(`^arn:aws:dynamodb:${UnitTestClient.getRegion()}:[0-9]+:table/(?<name>.*)`),
+    table: new RegExp(
+      `^arn:aws:dynamodb:${IntegrationTestClient.getRegion()}:[0-9]+:table/(?<name>.*)`
+    ),
     // arn:${Partition}:lambda:${Region}:${Account}:function:${FunctionName}:${Version}
     function: new RegExp(
-      `^arn:aws:lambda:${UnitTestClient.getRegion()}:[0-9]+:function:(?<name>[^:]*)`
+      `^arn:aws:lambda:${IntegrationTestClient.getRegion()}:[0-9]+:function:(?<name>[^:]*)`
     ),
   };
 
@@ -387,13 +398,13 @@ export default class UnitTestClient {
       return undefined;
     }
 
-    const arnMatch = arn.match(UnitTestClient.ResourceNamePatterns.queue);
+    const arnMatch = arn.match(IntegrationTestClient.ResourceNamePatterns.queue);
 
     if (!arnMatch || !arnMatch.groups?.account || !arnMatch.groups?.name) {
       throw new Error(`ARN did not match expected pattern: ${arn}`);
     }
 
-    const queueUrl = `https://sqs.${UnitTestClient.getRegion()}.amazonaws.com/${
+    const queueUrl = `https://sqs.${IntegrationTestClient.getRegion()}.amazonaws.com/${
       arnMatch.groups.account
     }/${arnMatch.groups?.name}`;
 
@@ -403,7 +414,7 @@ export default class UnitTestClient {
   getBucketNameByStackId(targetStackId: string): string | undefined {
     const resourceName = this.getResourceNameFromArn(
       targetStackId,
-      UnitTestClient.ResourceNamePatterns.bucket
+      IntegrationTestClient.ResourceNamePatterns.bucket
     );
     return resourceName;
   }
@@ -411,7 +422,7 @@ export default class UnitTestClient {
   getTableNameByStackId(targetStackId: string): string | undefined {
     const resourceName = this.getResourceNameFromArn(
       targetStackId,
-      UnitTestClient.ResourceNamePatterns.table
+      IntegrationTestClient.ResourceNamePatterns.table
     );
     return resourceName;
   }
@@ -419,7 +430,7 @@ export default class UnitTestClient {
   getFunctionNameByStackId(targetStackId: string): string | undefined {
     const resourceName = this.getResourceNameFromArn(
       targetStackId,
-      UnitTestClient.ResourceNamePatterns.function
+      IntegrationTestClient.ResourceNamePatterns.function
     );
     return resourceName;
   }

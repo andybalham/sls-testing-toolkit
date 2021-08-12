@@ -3,9 +3,9 @@ import AWS from 'aws-sdk';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import sns from 'aws-sdk/clients/sns';
 
-export default class TopicTestClient {
+export default class SNSTestClient {
   //
-  private readonly sns: AWS.SNS;
+  readonly sns: AWS.SNS;
 
   constructor(region: string, private topicArn: string) {
     this.sns = new AWS.SNS({ region });
@@ -24,5 +24,4 @@ export default class TopicTestClient {
 
     await this.sns.publish(publishInput).promise();
   }
-
 }

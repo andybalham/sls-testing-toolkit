@@ -1,6 +1,6 @@
 {
   "name": "@andybalham/sls-testing-toolkit",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Serverless Testing Toolkit",
   "main": "index.js",
   "types": "index.d.ts",
@@ -16,9 +16,9 @@
     "simple-event-router-synth": "tsc && cdk synth SimpleEventRouterTestStack",
     "simple-event-router-deploy": "tsc && cdk deploy SimpleEventRouterTestStack",
     "simple-event-router-destroy": "tsc && cdk destroy SimpleEventRouterTestStack",
-    "simple-message-router-synth": "tsc && cdk synth LoanProcessorTestStack",
-    "simple-message-router-deploy": "tsc && cdk deploy LoanProcessorTestStack",
-    "simple-message-router-destroy": "tsc && cdk destroy LoanProcessorTestStack",
+    "simple-message-router-synth": "tsc && cdk synth SimpleMessageRouterTestStack",
+    "simple-message-router-deploy": "tsc && cdk deploy SimpleMessageRouterTestStack",
+    "simple-message-router-destroy": "tsc && cdk destroy SimpleMessageRouterTestStack",
     "loan-processor-synth": "tsc && cdk synth LoanProcessorTestStack",
     "loan-processor-deploy": "tsc && cdk deploy LoanProcessorTestStack",
     "loan-processor-destroy": "tsc && cdk destroy LoanProcessorTestStack"
