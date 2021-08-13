@@ -1,5 +1,4 @@
 import * as cdk from '@aws-cdk/core';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import * as sns from '@aws-cdk/aws-sns';
 import * as snsSubs from '@aws-cdk/aws-sns-subscriptions';
 import * as lambda from '@aws-cdk/aws-lambda';

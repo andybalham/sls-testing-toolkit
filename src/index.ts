@@ -8,6 +8,7 @@ import SNSTestClient from './SNSTestClient';
 import S3TestClient from './S3TestClient';
 import DynamoDBTestClient from './DynamoDBTestClient';
 import SQSTestClient from './SQSTestClient';
+import EventBridgeTestClient from './EventBridgeTestClient';
 
 export {
   IntegrationTestStack,
@@ -19,5 +20,6 @@ export {
   S3TestClient,
   DynamoDBTestClient,
   SQSTestClient,
+  EventBridgeTestClient,
   TestObservation,
 };

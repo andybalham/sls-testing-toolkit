@@ -19,6 +19,9 @@
     "simple-message-router-synth": "tsc && cdk synth SimpleMessageRouterTestStack",
     "simple-message-router-deploy": "tsc && cdk deploy SimpleMessageRouterTestStack",
     "simple-message-router-destroy": "tsc && cdk destroy SimpleMessageRouterTestStack",
+    "notification-hub-synth": "tsc && cdk synth NotificationHubTestStack",
+    "notification-hub-deploy": "tsc && cdk deploy NotificationHubTestStack",
+    "notification-hub-destroy": "tsc && cdk destroy NotificationHubTestStack",
     "loan-processor-synth": "tsc && cdk synth LoanProcessorTestStack",
     "loan-processor-deploy": "tsc && cdk deploy LoanProcessorTestStack",
     "loan-processor-destroy": "tsc && cdk destroy LoanProcessorTestStack"

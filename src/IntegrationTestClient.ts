@@ -20,6 +20,7 @@ import SNSTestClient from './SNSTestClient';
 import DynamoDBTestClient from './DynamoDBTestClient';
 import SQSTestClient from './SQSTestClient';
 import { deleteAllLogs } from './cloudwatch';
+import EventBridgeTestClient from './EventBridgeTestClient';
 
 dotenv.config();
 
@@ -321,6 +322,17 @@ export default class IntegrationTestClient {
     }
 
     return new StepFunctionsTestClient(IntegrationTestClient.getRegion(), stateMachineArn);
+  }
+
+  getEventBridgeTestClient(eventBusStackId: string): EventBridgeTestClient {
+    //
+    const eventBusArn = this.getResourceArnByStackId(eventBusStackId);
+
+    if (eventBusArn === undefined) {
+      throw new Error(`The event bus ARN could not be resolved for id: ${eventBusStackId}`);
+    }
+
+    return new EventBridgeTestClient(IntegrationTestClient.getRegion(), eventBusArn);
   }
 
   getSNSTestClient(topicStackId: string): SNSTestClient {
