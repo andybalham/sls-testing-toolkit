@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
-import { SNSEvent, SNSEventRecord } from 'aws-lambda/trigger/sns';
+import { SNSEventRecord } from 'aws-lambda/trigger/sns';
 import { PutEventsRequestEntry } from 'aws-sdk/clients/eventbridge';
 import { expect } from 'chai';
 import { EventBridgeTestClient, IntegrationTestClient, TestObservation } from '../../src';
