@@ -10,7 +10,7 @@ import { LoanTableSchema } from './ExternalContracts';
 
 export default class LoanProcessorTestStack extends IntegrationTestStack {
   //
-  static readonly ResourceTagKey = `LoanProcessorTestStack${process.env.TEST_STACK_SCOPE ?? ''}`;
+  static readonly Id = `LoanProcessorTestStack${process.env.TEST_STACK_SCOPE ?? ''}`;
 
   static readonly CreditRatingFunctionId = 'CreditRatingFunction';
 
@@ -29,7 +29,7 @@ export default class LoanProcessorTestStack extends IntegrationTestStack {
   constructor(scope: cdk.Construct, id: string) {
     //
     super(scope, id, {
-      testResourceTagKey: LoanProcessorTestStack.ResourceTagKey,
+      testStackId: LoanProcessorTestStack.Id,
       testFunctionIds: [
         LoanProcessorTestStack.CreditRatingFunctionId,
         LoanProcessorTestStack.LoanTableSubscriberId,

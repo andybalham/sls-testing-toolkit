@@ -5,7 +5,7 @@ import SimpleEventRouterConstruct from './SimpleEventRouterConstruct';
 
 export default class SimpleEventRouterTestStack extends IntegrationTestStack {
   //
-  static readonly ResourceTagKey = `SimpleEventRouterTestStack${
+  static readonly Id = `SimpleEventRouterTestStack${
     process.env.TEST_STACK_SCOPE ?? ''
   }`;
 
@@ -18,7 +18,7 @@ export default class SimpleEventRouterTestStack extends IntegrationTestStack {
   constructor(scope: cdk.Construct, id: string) {
     //
     super(scope, id, {
-      testResourceTagKey: SimpleEventRouterTestStack.ResourceTagKey,
+      testStackId: SimpleEventRouterTestStack.Id,
       testFunctionIds: [
         SimpleEventRouterTestStack.PositiveOutputTopicSubscriberId,
         SimpleEventRouterTestStack.NegativeOutputTopicSubscriberId,

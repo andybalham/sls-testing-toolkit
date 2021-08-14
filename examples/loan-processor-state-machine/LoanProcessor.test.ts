@@ -21,7 +21,7 @@ import LoanProcessorTestStack from './LoanProcessorTestStack';
 describe('LoanProcessor Tests', () => {
   //
   const testClient = new IntegrationTestClient({
-    testResourceTagKey: LoanProcessorTestStack.ResourceTagKey,
+    testStackId: LoanProcessorTestStack.Id,
     deleteLogs: true,
   });
 

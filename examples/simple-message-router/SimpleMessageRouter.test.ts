@@ -10,7 +10,7 @@ describe('SimpleMessageRouter Test Suite', () => {
   let testInputQueue: SQSTestClient;
 
   const testClient = new IntegrationTestClient({
-    testResourceTagKey: TestStack.ResourceTagKey,
+    testStackId: TestStack.Id,
   });
 
   before(async () => {

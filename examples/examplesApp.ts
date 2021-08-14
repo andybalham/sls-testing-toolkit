@@ -8,7 +8,7 @@ import SimpleMessageRouterTestStack from './simple-message-router/SimpleMessageR
 const app = new cdk.App();
 cdk.Tags.of(app).add('app', 'ExamplesApp');
 
-new SimpleEventRouterTestStack(app, 'SimpleEventRouterTestStack');
-new SimpleMessageRouterTestStack(app, 'SimpleMessageRouterTestStack');
-new LoanProcessorTestStack(app, 'LoanProcessorTestStack');
-new NotificationHubTestStack(app, 'NotificationHubTestStack');
+new SimpleEventRouterTestStack(app, SimpleEventRouterTestStack.Id);
+new SimpleMessageRouterTestStack(app, SimpleMessageRouterTestStack.Id);
+new LoanProcessorTestStack(app, LoanProcessorTestStack.Id);
+new NotificationHubTestStack(app, NotificationHubTestStack.Id);

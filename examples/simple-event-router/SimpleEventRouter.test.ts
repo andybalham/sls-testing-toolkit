@@ -8,7 +8,7 @@ import SimpleEventRouterTestStack from './SimpleEventRouterTestStack';
 describe('SimpleEventRouter Test Suite', () => {
   //
   const testClient = new IntegrationTestClient({
-    testResourceTagKey: SimpleEventRouterTestStack.ResourceTagKey,
+    testStackId: SimpleEventRouterTestStack.Id,
   });
 
   let testInputTopic: SNSTestClient;

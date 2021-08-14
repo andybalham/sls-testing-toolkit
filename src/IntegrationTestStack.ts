@@ -9,14 +9,14 @@ import * as lambdaNodejs from '@aws-cdk/aws-lambda-nodejs';
 import path from 'path';
 
 export interface IntegrationTestStackProps {
-  testResourceTagKey: string;
+  testStackId: string;
   integrationTestTable?: boolean;
   testFunctionIds?: string[];
 }
 
 export default abstract class IntegrationTestStack extends cdk.Stack {
   //
-  readonly testResourceTagKey: string;
+  readonly testStackId: string;
 
   static readonly IntegrationTestTableId = 'IntegrationTestTable';
 
@@ -27,7 +27,7 @@ export default abstract class IntegrationTestStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props: IntegrationTestStackProps) {
     super(scope, id);
 
-    this.testResourceTagKey = props.testResourceTagKey;
+    this.testStackId = props.testStackId;
 
     if (props.integrationTestTable || (props.testFunctionIds?.length ?? 0) > 0) {
       //
@@ -62,7 +62,7 @@ export default abstract class IntegrationTestStack extends cdk.Stack {
   }
 
   addTestResourceTag(resource: cdk.IConstruct, resourceId: string): void {
-    cdk.Tags.of(resource).add(this.testResourceTagKey, resourceId);
+    cdk.Tags.of(resource).add(this.testStackId, resourceId);
   }
 
   addMessageConsumer(queue: sqs.IQueue, testFunctionId: string): void {

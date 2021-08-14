@@ -5,7 +5,7 @@ import SimpleMessageRouterConstruct from './SimpleMessageRouterConstruct';
 
 export default class SimpleMessageRouterTestStack extends IntegrationTestStack {
   //
-  static readonly ResourceTagKey = `SimpleRouterTestStack${process.env.TEST_STACK_SCOPE ?? ''}`;
+  static readonly Id = `SimpleRouterTestStack${process.env.TEST_STACK_SCOPE ?? ''}`;
 
   static readonly TestInputQueueId = 'TestInputQueue';
 
@@ -20,7 +20,7 @@ export default class SimpleMessageRouterTestStack extends IntegrationTestStack {
   constructor(scope: cdk.Construct, id: string) {
     //
     super(scope, id, {
-      testResourceTagKey: SimpleMessageRouterTestStack.ResourceTagKey,
+      testStackId: SimpleMessageRouterTestStack.Id,
       testFunctionIds: [
         SimpleMessageRouterTestStack.PositiveOutputDLQConsumerId,
         SimpleMessageRouterTestStack.NegativeOutputDLQConsumerId,

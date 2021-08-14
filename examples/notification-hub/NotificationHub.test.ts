@@ -1,4 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-expressions */
+import { SNSEvent, SNSEventRecord } from 'aws-lambda/trigger/sns';
 import { PutEventsRequestEntry } from 'aws-sdk/clients/eventbridge';
+import { expect } from 'chai';
 import { EventBridgeTestClient, IntegrationTestClient } from '../../src';
 import { EventType, LenderEvent } from './ExternalContracts';
 import NotificationHubConstruct from './NotificationHubConstruct';
@@ -7,7 +10,7 @@ import NotificationHubTestStack from './NotificationHubTestStack';
 describe('NotificationHub Tests', () => {
   //
   const testClient = new IntegrationTestClient({
-    testResourceTagKey: NotificationHubTestStack.TestResourceTagKey,
+    testStackId: NotificationHubTestStack.Id,
   });
 
   let notificationHubEventBus: EventBridgeTestClient;
@@ -15,7 +18,7 @@ describe('NotificationHub Tests', () => {
   before(async () => {
     await testClient.initialiseClientAsync();
     notificationHubEventBus = testClient.getEventBridgeTestClient(
-      NotificationHubConstruct.EventBusId
+      NotificationHubConstruct.NotificationHubEventBusId
     );
   });
 
@@ -23,7 +26,7 @@ describe('NotificationHub Tests', () => {
     await testClient.initialiseTestAsync();
   });
 
-  it('routes to unfiltered subscriber', async () => {
+  it('test events routed to bus observer', async () => {
     // Arrange
 
     const lenderEvent: LenderEvent = {
@@ -32,7 +35,7 @@ describe('NotificationHub Tests', () => {
     };
 
     const eventRequest: PutEventsRequestEntry = {
-      Source: 'test.unfiltered-subscriber',
+      Source: 'test',
       DetailType: EventType.Lender,
       Detail: JSON.stringify(lenderEvent),
     };
@@ -43,10 +46,20 @@ describe('NotificationHub Tests', () => {
 
     // Await
 
-    // TODO 13Aug21: What are we awaiting?
+    const { observations, timedOut } = await testClient.pollTestAsync({
+      until: async (o) => o.length > 0,
+    });
 
     // Assert
 
-    // TODO 13Aug21: What are we asserting?
+    expect(timedOut, 'timedOut').to.be.false;
+
+    const snsEventRecords = observations
+      .map((o) => o.data as SNSEvent)
+      .reduce((all, e) => all.concat(e.Records), new Array<SNSEventRecord>());
+
+    const busEvent = JSON.parse(snsEventRecords[0].Sns.Message);
+
+    expect(busEvent.detail).to.deep.equal(lenderEvent);
   });
 });

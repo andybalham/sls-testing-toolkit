@@ -9,6 +9,8 @@ import dynamodb from 'aws-sdk/clients/dynamodb';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import AWS from 'aws-sdk';
 import dotenv from 'dotenv';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { EventBus, ListEventBusesResponse } from 'aws-sdk/clients/eventbridge';
 import IntegrationTestStack from './IntegrationTestStack';
 import { CurrentTestItem, TestItemKey, TestItemPrefix } from './TestItems';
 import StepFunctionsTestClient from './StepFunctionsTestClient';
@@ -25,21 +27,25 @@ import EventBridgeTestClient from './EventBridgeTestClient';
 dotenv.config();
 
 export interface IntegrationTestClientProps {
-  testResourceTagKey: string;
+  testStackId: string;
   deleteLogs?: boolean;
 }
 
 export default class IntegrationTestClient {
   //
-  private static readonly tagging = new AWS.ResourceGroupsTaggingAPI({
+  static readonly tagging = new AWS.ResourceGroupsTaggingAPI({
     region: IntegrationTestClient.getRegion(),
   });
 
-  private static readonly db = new AWS.DynamoDB.DocumentClient({
+  static readonly db = new AWS.DynamoDB.DocumentClient({
     region: IntegrationTestClient.getRegion(),
   });
+
+  static readonly eventBridge = new AWS.EventBridge({ region: IntegrationTestClient.getRegion() });
 
   testResourceTagMappingList: ResourceTagMappingList;
+
+  testStackEventBuses = new Array<EventBus>();
 
   integrationTestTableName?: string;
 
@@ -110,8 +116,10 @@ export default class IntegrationTestClient {
   async initialiseClientAsync(): Promise<void> {
     //
     this.testResourceTagMappingList = await IntegrationTestClient.getResourcesByTagKeyAsync(
-      this.props.testResourceTagKey
+      this.props.testStackId
     );
+
+    this.testStackEventBuses = await this.getTestStackEventBusesAsync();
 
     this.integrationTestTableName = this.getTableNameByStackId(
       IntegrationTestStack.IntegrationTestTableId
@@ -136,6 +144,29 @@ export default class IntegrationTestClient {
         }
       }
     }
+  }
+
+  private async getTestStackEventBusesAsync(): Promise<EventBus[]> {
+    //
+    let eventBuses = new Array<EventBus>();
+
+    let listEventBusesResponse: ListEventBusesResponse | undefined;
+
+    do {
+      // eslint-disable-next-line no-await-in-loop
+      listEventBusesResponse = await IntegrationTestClient.eventBridge
+        .listEventBuses({
+          NamePrefix: this.props.testStackId,
+          NextToken: listEventBusesResponse?.NextToken,
+        })
+        .promise();
+
+      if (listEventBusesResponse?.EventBuses) {
+        eventBuses = eventBuses.concat(listEventBusesResponse.EventBuses);
+      }
+    } while (listEventBusesResponse?.NextToken);
+
+    return eventBuses;
   }
 
   async initialiseTestAsync(props: TestProps = { testId: 'default-test-id' }): Promise<void> {
@@ -326,13 +357,28 @@ export default class IntegrationTestClient {
 
   getEventBridgeTestClient(eventBusStackId: string): EventBridgeTestClient {
     //
-    const eventBusArn = this.getResourceArnByStackId(eventBusStackId);
+    // 14Aug21: At the time of writing, we cannot tag event buses, so we have to use assumptions about the name
+    // const eventBusArn = this.getResourceArnByStackId(eventBusStackId);
 
-    if (eventBusArn === undefined) {
-      throw new Error(`The event bus ARN could not be resolved for id: ${eventBusStackId}`);
+    // if (eventBusArn === undefined) {
+    //   throw new Error(`The event bus ARN could not be resolved for id: ${eventBusStackId}`);
+    // }
+
+    // return new EventBridgeTestClient(IntegrationTestClient.getRegion(), eventBusArn);
+
+    const eventBuses = this.testStackEventBuses.filter(
+      (b) => b.Name && b.Name.match(`^${this.props.testStackId}.*${eventBusStackId}`)
+    );
+
+    if (eventBuses.length !== 1) {
+      throw new Error(`Found unexpected number of event buses for id: ${eventBusStackId}`);
     }
 
-    return new EventBridgeTestClient(IntegrationTestClient.getRegion(), eventBusArn);
+    if (eventBuses[0].Arn === undefined) {
+      throw new Error(`ARN undefined for event bus with id: ${eventBusStackId}`);
+    }
+
+    return new EventBridgeTestClient(IntegrationTestClient.getRegion(), eventBuses[0].Arn);
   }
 
   getSNSTestClient(topicStackId: string): SNSTestClient {
@@ -364,8 +410,7 @@ export default class IntegrationTestClient {
 
     const tagMatches = this.testResourceTagMappingList.filter(
       (r) =>
-        r.Tags &&
-        r.Tags.some((t) => t.Key === this.props.testResourceTagKey && t.Value === targetStackId)
+        r.Tags && r.Tags.some((t) => t.Key === this.props.testStackId && t.Value === targetStackId)
     );
 
     if (tagMatches.length === 0) {

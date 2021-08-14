@@ -10,23 +10,25 @@ export default class EventBridgeTestClient {
   //
   readonly eventBridge: AWS.EventBridge;
 
-  constructor(region: string, private eventBusArn: string) {
+  constructor(region: string, public eventBusArn: string) {
     this.eventBridge = new AWS.EventBridge({ region });
   }
 
   async putEventAsync(entry: PutEventsRequestEntry): Promise<PutEventsResponse> {
-    return this.putEventsAsync([entry]);
+    const response = await this.putEventsAsync([entry]);
+    return response;
   }
 
   async putEventsAsync(entries: PutEventsRequestEntry[]): Promise<PutEventsResponse> {
     //
-    const putEventsRequest: PutEventsRequest = {
+    const request: PutEventsRequest = {
       Entries: entries.map((e) => ({
         ...e,
         EventBusName: this.eventBusArn,
       })),
     };
 
-    return this.eventBridge.putEvents(putEventsRequest).promise();
+    const response = await this.eventBridge.putEvents(request).promise();
+    return response;
   }
 }
