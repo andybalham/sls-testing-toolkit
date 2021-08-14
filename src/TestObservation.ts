@@ -20,4 +20,11 @@ export default class TestObservation {
       console.log(JSON.stringify({ o: observation }, null, 2));
     });
   }
+
+  static getEventRecords<TEventRecord>(observations: TestObservation[]): TEventRecord[] {
+    const eventRecords = observations
+      .map((o) => o.data as { Records: TEventRecord[] })
+      .reduce((all, e) => all.concat(e.Records), new Array<TEventRecord>());
+    return eventRecords;
+  }
 }

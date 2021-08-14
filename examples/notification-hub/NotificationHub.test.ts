@@ -2,7 +2,7 @@
 import { SNSEvent, SNSEventRecord } from 'aws-lambda/trigger/sns';
 import { PutEventsRequestEntry } from 'aws-sdk/clients/eventbridge';
 import { expect } from 'chai';
-import { EventBridgeTestClient, IntegrationTestClient } from '../../src';
+import { EventBridgeTestClient, IntegrationTestClient, TestObservation } from '../../src';
 import { EventType, LenderEvent } from './ExternalContracts';
 import NotificationHubConstruct from './NotificationHubConstruct';
 import NotificationHubTestStack from './NotificationHubTestStack';
@@ -54,9 +54,7 @@ describe('NotificationHub Tests', () => {
 
     expect(timedOut, 'timedOut').to.be.false;
 
-    const snsEventRecords = observations
-      .map((o) => o.data as SNSEvent)
-      .reduce((all, e) => all.concat(e.Records), new Array<SNSEventRecord>());
+    const snsEventRecords = TestObservation.getEventRecords<SNSEventRecord>(observations);
 
     const busEvent = JSON.parse(snsEventRecords[0].Sns.Message);
 
