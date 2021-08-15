@@ -5,9 +5,7 @@ import SimpleEventRouterConstruct from './SimpleEventRouterConstruct';
 
 export default class SimpleEventRouterTestStack extends IntegrationTestStack {
   //
-  static readonly Id = `SimpleEventRouterTestStack${
-    process.env.TEST_STACK_SCOPE ?? ''
-  }`;
+  static readonly Id = `SimpleEventRouterTestStack`;
 
   static readonly TestInputTopicId = 'TestInputTopic';
 

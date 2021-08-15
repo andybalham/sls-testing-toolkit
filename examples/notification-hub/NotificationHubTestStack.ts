@@ -3,14 +3,17 @@ import * as events from '@aws-cdk/aws-events';
 import * as eventsTargets from '@aws-cdk/aws-events-targets';
 import * as sns from '@aws-cdk/aws-sns';
 import { IntegrationTestStack } from '../../src';
-import NotificationHubConstruct from './NotificationHubConstruct';
+import NotificationHub from './NotificationHub';
 
 export default class NotificationHubTestStack extends IntegrationTestStack {
   //
   static readonly Id = `NotificationHubTestStack`;
-  // static readonly Id = `NotificationHubTestStack${process.env.TEST_STACK_SCOPE ?? ''}`;
 
   static readonly BusObserverFunctionId = 'BusObserverFunction';
+
+  static readonly PublishCaseEventFunctionId = 'PublishCaseEventFunction';
+
+  static readonly TestLenderId = 'test-lender-id';
 
   constructor(scope: cdk.Construct, id: string) {
     super(scope, id, {
@@ -20,10 +23,15 @@ export default class NotificationHubTestStack extends IntegrationTestStack {
 
     // SUT
 
-    const sut = new NotificationHubConstruct(this, 'SUT');
+    const sut = new NotificationHub(this, 'SUT');
 
     // 14Aug21: This currently has no effect, as you can't add tags to event buses at the time of writing
-    this.addTestResourceTag(sut.eventBus, NotificationHubConstruct.NotificationHubEventBusId);
+    this.addTestResourceTag(sut.eventBus, NotificationHub.NotificationHubEventBusId);
+
+    this.addTestResourceTag(
+      sut.publishCaseEventFunction,
+      NotificationHubTestStack.PublishCaseEventFunctionId
+    );
 
     // Bus observer function
 
@@ -34,7 +42,7 @@ export default class NotificationHubTestStack extends IntegrationTestStack {
     const busObserverRule = new events.Rule(this, 'BusObserverRule', {
       eventBus: sut.eventBus,
       eventPattern: {
-        source: ['test'],
+        source: [`lender.${NotificationHubTestStack.TestLenderId}`],
       },
     });
 

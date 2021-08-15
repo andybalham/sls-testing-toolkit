@@ -5,7 +5,7 @@ import SimpleMessageRouterConstruct from './SimpleMessageRouterConstruct';
 
 export default class SimpleMessageRouterTestStack extends IntegrationTestStack {
   //
-  static readonly Id = `SimpleRouterTestStack${process.env.TEST_STACK_SCOPE ?? ''}`;
+  static readonly Id = `SimpleRouterTestStack`;
 
   static readonly TestInputQueueId = 'TestInputQueue';
 

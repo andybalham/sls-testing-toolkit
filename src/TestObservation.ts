@@ -21,9 +21,11 @@ export default class TestObservation {
     });
   }
 
-  static getEventRecords<TEventRecord>(observations: TestObservation[]): TEventRecord[] {
+  static getEventRecords<TEvent extends { Records: TEventRecord[] }, TEventRecord>(
+    observations: TestObservation[]
+  ): TEventRecord[] {
     const eventRecords = observations
-      .map((o) => o.data as { Records: TEventRecord[] })
+      .map((o) => o.data as TEvent)
       .reduce((all, e) => all.concat(e.Records), new Array<TEventRecord>());
     return eventRecords;
   }
