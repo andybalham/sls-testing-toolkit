@@ -1,7 +1,4 @@
 import * as cdk from '@aws-cdk/core';
-import * as events from '@aws-cdk/aws-events';
-import * as eventsTargets from '@aws-cdk/aws-events-targets';
-import * as sns from '@aws-cdk/aws-sns';
 import { IntegrationTestStack } from '../../src';
 import NotificationHub from './NotificationHub';
 
@@ -35,17 +32,8 @@ export default class NotificationHubTestStack extends IntegrationTestStack {
 
     // Bus observer function
 
-    const busObserverTopic = new sns.Topic(this, 'BusObserverTopic');
-
-    this.addEventSubscriber(busObserverTopic, NotificationHubTestStack.BusObserverFunctionId);
-
-    const busObserverRule = new events.Rule(this, 'BusObserverRule', {
-      eventBus: sut.eventBus,
-      eventPattern: {
-        source: [`lender.${NotificationHubTestStack.TestLenderId}`],
-      },
+    this.addEventBridgeRuleTarget(sut.eventBus, NotificationHubTestStack.BusObserverFunctionId, {
+      source: [`lender.${NotificationHubTestStack.TestLenderId}`],
     });
-
-    busObserverRule.addTarget(new eventsTargets.SnsTopic(busObserverTopic));
   }
 }

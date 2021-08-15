@@ -40,22 +40,22 @@ export default class SimpleMessageRouterTestStack extends IntegrationTestStack {
       inputQueue: testInputQueue,
     });
 
-    this.addMessageConsumer(
+    this.addSQSQueueConsumer(
       sut.positiveOutputQueue,
       SimpleMessageRouterTestStack.PositiveOutputQueueConsumerId
     );
 
-    this.addMessageConsumer(
+    this.addSQSQueueConsumer(
       sut.positiveOutputDLQ,
       SimpleMessageRouterTestStack.PositiveOutputDLQConsumerId
     );
 
-    this.addMessageConsumer(
+    this.addSQSQueueConsumer(
       sut.negativeOutputQueue,
       SimpleMessageRouterTestStack.NegativeOutputQueueConsumerId
     );
 
-    this.addMessageConsumer(
+    this.addSQSQueueConsumer(
       sut.negativeOutputDLQ,
       SimpleMessageRouterTestStack.NegativeOutputDLQConsumerId
     );

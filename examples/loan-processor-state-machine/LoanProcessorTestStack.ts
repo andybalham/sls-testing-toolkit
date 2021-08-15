@@ -51,13 +51,13 @@ export default class LoanProcessorTestStack extends IntegrationTestStack {
 
     this.addTestResourceTag(loanTable, LoanProcessorTestStack.LoanTableId);
 
-    this.addTableSubscriber(loanTable, LoanProcessorTestStack.LoanTableSubscriberId);
+    this.addDynamoDBTableEventSource(loanTable, LoanProcessorTestStack.LoanTableSubscriberId);
 
     // Declined topic and subscriber
 
     const declinedTopic = new sns.Topic(this, 'DeclinedTopic');
 
-    this.addEventSubscriber(declinedTopic, LoanProcessorTestStack.DeclinedEventSubscriberId);
+    this.addSNSTopicSubscriber(declinedTopic, LoanProcessorTestStack.DeclinedEventSubscriberId);
 
     // Error queue and consumer
 
@@ -66,7 +66,7 @@ export default class LoanProcessorTestStack extends IntegrationTestStack {
       visibilityTimeout: cdk.Duration.seconds(3),
     });
 
-    this.addMessageConsumer(errorQueue, LoanProcessorTestStack.ErrorQueueConsumerId);
+    this.addSQSQueueConsumer(errorQueue, LoanProcessorTestStack.ErrorQueueConsumerId);
 
     // SUT
 

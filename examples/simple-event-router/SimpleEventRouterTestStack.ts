@@ -31,12 +31,12 @@ export default class SimpleEventRouterTestStack extends IntegrationTestStack {
       inputTopic: testInputTopic,
     });
 
-    this.addEventSubscriber(
+    this.addSNSTopicSubscriber(
       sut.positiveOutputTopic,
       SimpleEventRouterTestStack.PositiveOutputTopicSubscriberId
     );
 
-    this.addEventSubscriber(
+    this.addSNSTopicSubscriber(
       sut.negativeOutputTopic,
       SimpleEventRouterTestStack.NegativeOutputTopicSubscriberId
     );

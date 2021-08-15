@@ -7,6 +7,8 @@ import * as lambda from '@aws-cdk/aws-lambda';
 import * as lambdaEventSources from '@aws-cdk/aws-lambda-event-sources';
 import * as lambdaNodejs from '@aws-cdk/aws-lambda-nodejs';
 import path from 'path';
+import * as events from '@aws-cdk/aws-events';
+import * as eventsTargets from '@aws-cdk/aws-events-targets';
 
 export interface IntegrationTestStackProps {
   testStackId: string;
@@ -65,7 +67,7 @@ export default abstract class IntegrationTestStack extends cdk.Stack {
     cdk.Tags.of(resource).add(this.testStackId, resourceId);
   }
 
-  addMessageConsumer(queue: sqs.IQueue, testFunctionId: string): void {
+  addSQSQueueConsumer(queue: sqs.IQueue, testFunctionId: string): void {
     //
     const queueObserverFunction = this.testFunctions[testFunctionId];
 
@@ -73,14 +75,14 @@ export default abstract class IntegrationTestStack extends cdk.Stack {
     queueObserverFunction.addEventSource(new lambdaEventSources.SqsEventSource(queue));
   }
 
-  addEventSubscriber(topic: sns.ITopic, testFunctionId: string): void {
+  addSNSTopicSubscriber(topic: sns.ITopic, testFunctionId: string): void {
     //
     const topicObserverFunction = this.testFunctions[testFunctionId];
 
     topic.addSubscription(new snsSubs.LambdaSubscription(topicObserverFunction));
   }
 
-  addTableSubscriber(
+  addDynamoDBTableEventSource(
     table: dynamodb.ITable,
     testFunctionId: string,
     props?: lambdaEventSources.DynamoEventSourceProps
@@ -94,6 +96,20 @@ export default abstract class IntegrationTestStack extends cdk.Stack {
         ...props,
       })
     );
+  }
+
+  addEventBridgeRuleTarget(
+    eventBus: events.EventBus,
+    testFunctionId: string,
+    eventPattern: events.EventPattern
+  ): void {
+    //
+    const rule = new events.Rule(this, `${testFunctionId}Rule`, {
+      eventBus,
+      eventPattern,
+    });
+
+    rule.addTarget(new eventsTargets.LambdaFunction(this.testFunctions[testFunctionId]));
   }
 
   private newTestFunction(functionId: string): lambda.IFunction {
