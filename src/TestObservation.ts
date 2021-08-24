@@ -4,7 +4,7 @@ export default class TestObservation {
 
   timestamp: number;
 
-  data: Record<string, any>;
+  data: any;
 
   static getCountById(observations: TestObservation[], observerId: string): number {
     return TestObservation.filterById(observations, observerId).length;

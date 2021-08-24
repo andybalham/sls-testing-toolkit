@@ -98,18 +98,24 @@ export default abstract class IntegrationTestStack extends cdk.Stack {
     );
   }
 
-  addEventBridgeRuleTarget(
+  addEventBridgeRuleTargetFunction(
+    id: string,
     eventBus: events.EventBus,
     testFunctionId: string,
-    eventPattern: events.EventPattern
+    eventPattern: events.EventPattern,
+    event?: events.RuleTargetInput
   ): void {
     //
-    const rule = new events.Rule(this, `${testFunctionId}Rule`, {
+    const rule = new events.Rule(this, id, {
       eventBus,
       eventPattern,
     });
 
-    rule.addTarget(new eventsTargets.LambdaFunction(this.testFunctions[testFunctionId]));
+    rule.addTarget(
+      new eventsTargets.LambdaFunction(this.testFunctions[testFunctionId], {
+        event,
+      })
+    );
   }
 
   private newTestFunction(functionId: string): lambda.IFunction {

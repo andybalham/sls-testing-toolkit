@@ -24,5 +24,6 @@ export interface CaseStatusUpdatedEvent extends CaseEvent {
 
 export interface CasePaymentRequiredEvent extends CaseEvent {
   paymentId: string;
+  total: number;
   description: string;
 }
