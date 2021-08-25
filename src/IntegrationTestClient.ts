@@ -395,7 +395,7 @@ export default class IntegrationTestClient {
   }: {
     eventPattern: cdkEvents.EventPattern;
     putEventsRequest: PutEventsRequestEntry;
-  }): Promise<boolean | undefined> {
+  }): Promise<boolean> {
     //
     const mappedEvent: any = {
       id: '6a7e8feb-b491-4cf7-a9f1-bf3703467718',
@@ -421,8 +421,6 @@ export default class IntegrationTestClient {
     // console.log(JSON.stringify({ mappedEventPattern }, null, 2));
 
     const request: TestEventPatternRequest = {
-      // The event, in JSON format, to test against the event pattern. The JSON must follow the format specified in Amazon Web Services Events, and the following fields are mandatory:
-      // id     account     source     time     region     resources     detail-type
       Event: JSON.stringify(mappedEvent),
       EventPattern: JSON.stringify(mappedEventPattern),
     };
