@@ -15,6 +15,7 @@
     "istanbuljs",
     "nanoid",
     "resourcegroupstaggingapi",
-    "stepfunctions"
+    "stepfunctions",
+    "vars"
   ]
 }

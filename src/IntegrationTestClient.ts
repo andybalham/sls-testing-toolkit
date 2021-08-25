@@ -10,7 +10,13 @@ import dynamodb from 'aws-sdk/clients/dynamodb';
 import AWS from 'aws-sdk';
 import dotenv from 'dotenv';
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { EventBus, ListEventBusesResponse } from 'aws-sdk/clients/eventbridge';
+import {
+  EventBus,
+  ListEventBusesResponse,
+  PutEventsRequestEntry,
+  TestEventPatternRequest,
+} from 'aws-sdk/clients/eventbridge';
+import * as cdkEvents from '@aws-cdk/aws-events';
 import IntegrationTestStack from './IntegrationTestStack';
 import { CurrentTestItem, TestItemKey, TestItemPrefix } from './TestItems';
 import StepFunctionsTestClient from './StepFunctionsTestClient';
@@ -371,7 +377,9 @@ export default class IntegrationTestClient {
     );
 
     if (eventBuses.length !== 1) {
-      throw new Error(`Found unexpected number of event buses for id: ${eventBusStackId}`);
+      throw new Error(
+        `Found unexpected number of event buses (${eventBuses.length}) for id: ${eventBusStackId}`
+      );
     }
 
     if (eventBuses[0].Arn === undefined) {
@@ -379,6 +387,49 @@ export default class IntegrationTestClient {
     }
 
     return new EventBridgeTestClient(IntegrationTestClient.getRegion(), eventBuses[0].Arn);
+  }
+
+  static async isEventPatternMatchAsync({
+    eventPattern,
+    putEventsRequest,
+  }: {
+    eventPattern: cdkEvents.EventPattern;
+    putEventsRequest: PutEventsRequestEntry;
+  }): Promise<boolean | undefined> {
+    //
+    const mappedEvent: any = {
+      id: '6a7e8feb-b491-4cf7-a9f1-bf3703467718',
+      'detail-type': putEventsRequest.DetailType ? putEventsRequest.DetailType : 'detail-type',
+      source: putEventsRequest.Source ? putEventsRequest.Source : 'source',
+      account: '0000000000',
+      time: putEventsRequest.Time ? putEventsRequest.Time : '2017-12-22T18:43:48Z',
+      region: 'us-west-1',
+      resources: putEventsRequest.Resources ? putEventsRequest.Resources : [],
+      detail: putEventsRequest.Detail ? JSON.parse(putEventsRequest.Detail) : {},
+    };
+
+    // eslint-disable-next-line no-console
+    // console.log(JSON.stringify({ mappedEvent }, null, 2));
+
+    const mappedEventPattern = {
+      ...eventPattern,
+      'detail-type': eventPattern.detailType,
+      detailType: undefined,
+    };
+
+    // eslint-disable-next-line no-console
+    // console.log(JSON.stringify({ mappedEventPattern }, null, 2));
+
+    const request: TestEventPatternRequest = {
+      // The event, in JSON format, to test against the event pattern. The JSON must follow the format specified in Amazon Web Services Events, and the following fields are mandatory:
+      // id     account     source     time     region     resources     detail-type
+      Event: JSON.stringify(mappedEvent),
+      EventPattern: JSON.stringify(mappedEventPattern),
+    };
+
+    const response = await this.eventBridge.testEventPattern(request).promise();
+
+    return response.Result ?? false;
   }
 
   getSNSTestClient(topicStackId: string): SNSTestClient {

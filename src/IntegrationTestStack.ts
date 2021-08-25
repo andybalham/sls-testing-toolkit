@@ -98,25 +98,43 @@ export default abstract class IntegrationTestStack extends cdk.Stack {
     );
   }
 
-  addEventBridgeRuleTargetFunction(
+  addEventBridgeRule(
     id: string,
     eventBus: events.EventBus,
-    testFunctionId: string,
-    eventPattern: events.EventPattern,
-    event?: events.RuleTargetInput
-  ): void {
+    eventPattern: events.EventPattern
+  ): events.Rule {
     //
     const rule = new events.Rule(this, id, {
       eventBus,
       eventPattern,
     });
 
+    return rule;
+  }
+
+  addEventBridgeRuleTargetFunction(
+    rule: events.Rule,
+    testFunctionId: string,
+    event?: events.RuleTargetInput
+  ): events.Rule {
+    //
     rule.addTarget(
       new eventsTargets.LambdaFunction(this.testFunctions[testFunctionId], {
         event,
       })
     );
+
+    return rule;
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  async addEventBridgeRuleTargetWebhookAsync(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    rule: events.Rule,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    url: string
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  ): Promise<void> {}
 
   private newTestFunction(functionId: string): lambda.IFunction {
     //
