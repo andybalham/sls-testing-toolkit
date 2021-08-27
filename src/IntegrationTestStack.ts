@@ -98,7 +98,7 @@ export default abstract class IntegrationTestStack extends cdk.Stack {
     );
   }
 
-  addEventBridgeRule(
+  addEventBridgePatternRule(
     id: string,
     eventBus: events.EventBus,
     eventPattern: events.EventPattern
@@ -106,7 +106,7 @@ export default abstract class IntegrationTestStack extends cdk.Stack {
     //
     const rule = new events.Rule(this, id, {
       eventBus,
-      eventPattern,
+      eventPattern,      
     });
 
     return rule;
@@ -133,7 +133,7 @@ export default abstract class IntegrationTestStack extends cdk.Stack {
     rule: events.Rule,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     url: string
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
   ): Promise<void> {}
 
   private newTestFunction(functionId: string): lambda.IFunction {

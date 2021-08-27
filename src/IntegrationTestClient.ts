@@ -405,20 +405,14 @@ export default class IntegrationTestClient {
       time: putEventsRequest.Time ? putEventsRequest.Time : '2017-12-22T18:43:48Z',
       region: 'us-west-1',
       resources: putEventsRequest.Resources ? putEventsRequest.Resources : [],
-      detail: putEventsRequest.Detail ? JSON.parse(putEventsRequest.Detail) : {},
+      detail: putEventsRequest.Detail ? JSON.parse(putEventsRequest.Detail) : undefined,
     };
-
-    // eslint-disable-next-line no-console
-    // console.log(JSON.stringify({ mappedEvent }, null, 2));
 
     const mappedEventPattern = {
       ...eventPattern,
       'detail-type': eventPattern.detailType,
       detailType: undefined,
     };
-
-    // eslint-disable-next-line no-console
-    // console.log(JSON.stringify({ mappedEventPattern }, null, 2));
 
     const request: TestEventPatternRequest = {
       Event: JSON.stringify(mappedEvent),

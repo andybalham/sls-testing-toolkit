@@ -1,5 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 import * as events from '@aws-cdk/aws-events';
+import * as eventsTargets from '@aws-cdk/aws-events-targets';
 import { IntegrationTestStack } from '../../src';
 import NotificationHub from './NotificationHub';
 import { CaseEventType } from './ExternalContracts';
@@ -81,8 +82,6 @@ export default class NotificationHubTestStack extends IntegrationTestStack {
     },
   };
 
-  testLenderRule: events.Rule;
-
   constructor(scope: cdk.Construct, id: string) {
     super(scope, id, {
       testStackId: NotificationHubTestStack.Id,
@@ -95,7 +94,6 @@ export default class NotificationHubTestStack extends IntegrationTestStack {
 
     // 14Aug21: This currently has no effect, as you can't add tags to event buses at the time of writing
     // https://docs.aws.amazon.com/eventbridge/latest/APIReference/API_TagResource.html
-    // In EventBridge, rules and event buses can be tagged.
     this.addTestResourceTag(sut.eventBus, NotificationHub.NotificationHubEventBusId);
 
     this.addTestResourceTag(
@@ -105,18 +103,22 @@ export default class NotificationHubTestStack extends IntegrationTestStack {
 
     // Bus observer rules
 
-    const testLenderRule = this.addEventBridgeRule('SourceRule', sut.eventBus, {
-      source: [`lender.${NotificationHubTestStack.TestLenderId}`],
+    const sourceRule = new events.Rule(this, 'SourceRule', {
+      eventBus: sut.eventBus,
+      eventPattern: {
+        source: [`lender.${NotificationHubTestStack.TestLenderId}`],
+      },
     });
 
-    this.addEventBridgeRuleTargetFunction(
-      testLenderRule,
-      NotificationHubTestStack.BusObserverFunctionId
+    sourceRule.addTarget(
+      new eventsTargets.LambdaFunction(
+        this.testFunctions[NotificationHubTestStack.BusObserverFunctionId]
+      )
     );
 
     // https://docs.webhook.site/
     this.addEventBridgeRuleTargetWebhookAsync(
-      testLenderRule,
+      sourceRule,
       'https://webhook.site/f2753757-733f-4d0f-935e-5e71187a15c4'
     );
 
@@ -124,7 +126,7 @@ export default class NotificationHubTestStack extends IntegrationTestStack {
     // https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-event-patterns-content-based-filtering.html
 
     this.addEventBridgeRuleTargetFunction(
-      this.addEventBridgeRule(
+      this.addEventBridgePatternRule(
         'EqualRule',
         sut.eventBus,
         NotificationHubTestStack.EqualTestEventPattern
@@ -134,7 +136,7 @@ export default class NotificationHubTestStack extends IntegrationTestStack {
     );
 
     this.addEventBridgeRuleTargetFunction(
-      this.addEventBridgeRule(
+      this.addEventBridgePatternRule(
         'AndRule',
         sut.eventBus,
         NotificationHubTestStack.AndTestEventPattern
@@ -144,13 +146,17 @@ export default class NotificationHubTestStack extends IntegrationTestStack {
     );
 
     this.addEventBridgeRuleTargetFunction(
-      this.addEventBridgeRule('OrRule', sut.eventBus, NotificationHubTestStack.OrTestEventPattern),
+      this.addEventBridgePatternRule(
+        'OrRule',
+        sut.eventBus,
+        NotificationHubTestStack.OrTestEventPattern
+      ),
       NotificationHubTestStack.BusObserverFunctionId,
       events.RuleTargetInput.fromText('OR')
     );
 
     this.addEventBridgeRuleTargetFunction(
-      this.addEventBridgeRule(
+      this.addEventBridgePatternRule(
         'AnythingButRule',
         sut.eventBus,
         NotificationHubTestStack.AnythingButTestEventPattern
@@ -160,7 +166,7 @@ export default class NotificationHubTestStack extends IntegrationTestStack {
     );
 
     this.addEventBridgeRuleTargetFunction(
-      this.addEventBridgeRule(
+      this.addEventBridgePatternRule(
         'BeginsWithRule',
         sut.eventBus,
         NotificationHubTestStack.BeginsWithTestEventPattern
@@ -170,7 +176,7 @@ export default class NotificationHubTestStack extends IntegrationTestStack {
     );
 
     this.addEventBridgeRuleTargetFunction(
-      this.addEventBridgeRule(
+      this.addEventBridgePatternRule(
         'ExistsRule',
         sut.eventBus,
         NotificationHubTestStack.ExistsTestEventPattern
@@ -180,7 +186,7 @@ export default class NotificationHubTestStack extends IntegrationTestStack {
     );
 
     this.addEventBridgeRuleTargetFunction(
-      this.addEventBridgeRule(
+      this.addEventBridgePatternRule(
         'NumericEqualRule',
         sut.eventBus,
         NotificationHubTestStack.NumericEqualTestEventPattern
@@ -190,7 +196,7 @@ export default class NotificationHubTestStack extends IntegrationTestStack {
     );
 
     this.addEventBridgeRuleTargetFunction(
-      this.addEventBridgeRule(
+      this.addEventBridgePatternRule(
         'NumericRangeRule',
         sut.eventBus,
         NotificationHubTestStack.NumericRangeTestEventPattern
