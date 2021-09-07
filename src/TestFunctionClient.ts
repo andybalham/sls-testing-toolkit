@@ -33,8 +33,10 @@ export default class TestFunctionClient {
 
     const testQueryOutput = await documentClient.query(testQueryParams).promise();
 
-    if (testQueryOutput.Items === undefined) throw new Error('testQueryOutput.Items === undefined');
-    if (testQueryOutput.Items.length !== 1) throw new Error('testQueryOutput.Items.length !== 1');
+    if (testQueryOutput.Items?.length !== 1)
+      throw new Error(
+        'No current test item found in the integration test table. Are you missing a call to initialiseTestAsync?'
+      );
 
     const currentTestItem = testQueryOutput.Items[0] as CurrentTestItem;
 
