@@ -7,6 +7,7 @@ import * as lambda from '@aws-cdk/aws-lambda';
 import * as lambdaEventSources from '@aws-cdk/aws-lambda-event-sources';
 import * as lambdaNodejs from '@aws-cdk/aws-lambda-nodejs';
 import path from 'path';
+import fs from 'fs';
 import * as events from '@aws-cdk/aws-events';
 import * as eventsTargets from '@aws-cdk/aws-events-targets';
 
@@ -106,7 +107,7 @@ export default abstract class IntegrationTestStack extends cdk.Stack {
     //
     const rule = new events.Rule(this, id, {
       eventBus,
-      eventPattern,      
+      eventPattern,
     });
 
     return rule;
@@ -138,11 +139,14 @@ export default abstract class IntegrationTestStack extends cdk.Stack {
 
   private newTestFunction(functionId: string): lambda.IFunction {
     //
-    const typescriptOutputPath = path.join(__dirname, '..', 'dist');
+    const typescriptEntry = path.join(__dirname, '.', 'testFunction.ts');
+    const packageEntry = path.join(__dirname, '.', 'testFunction.js');
+
+    const entry = fs.existsSync(typescriptEntry) ? typescriptEntry : packageEntry;
 
     const testFunction = new lambdaNodejs.NodejsFunction(this, `TestFunction-${functionId}`, {
       runtime: lambda.Runtime.NODEJS_14_X,
-      entry: path.join(typescriptOutputPath, 'src/testFunction.js'),
+      entry,
       handler: 'handler',
       environment: {
         FUNCTION_ID: functionId,
