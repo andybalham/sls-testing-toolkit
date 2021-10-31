@@ -31,7 +31,6 @@ jobs:
       - run: |
           cp ./package.json ./dist/src/package.json 
           cp ./README.md ./dist/src/README.md
-          cp ./src/testFunction.ts ./dist/src/testFunction.ts
           cd ./dist/src
           npm publish --access=public
         env:
