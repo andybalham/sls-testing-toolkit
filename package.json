@@ -1,6 +1,6 @@
 {
   "name": "@andybalham/sls-testing-toolkit",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "A toolkit for testing AWS serverless applications",
   "main": "index.js",
   "types": "index.d.ts",

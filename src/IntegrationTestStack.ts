@@ -138,11 +138,11 @@ export default abstract class IntegrationTestStack extends cdk.Stack {
 
   private newTestFunction(functionId: string): lambda.IFunction {
     //
-    const functionEntryBase = path.join(__dirname, '.');
+    const typescriptOutputPath = path.join(__dirname, '..', 'dist');
 
     const testFunction = new lambdaNodejs.NodejsFunction(this, `TestFunction-${functionId}`, {
       runtime: lambda.Runtime.NODEJS_14_X,
-      entry: path.join(functionEntryBase, `testFunction.ts`),
+      entry: path.join(typescriptOutputPath, 'src/testFunction.js'),
       handler: 'handler',
       environment: {
         FUNCTION_ID: functionId,
