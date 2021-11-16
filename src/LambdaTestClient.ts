@@ -5,7 +5,7 @@ export default class LambdaTestClient {
   //
   readonly lambda: AWS.Lambda;
 
-  constructor(region: string, private functionName: string) {
+  constructor(public readonly region: string, public readonly functionName: string) {
     this.lambda = new AWS.Lambda({ region });
   }
 

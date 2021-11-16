@@ -6,7 +6,7 @@ export default class S3TestClient {
   //
   readonly s3: AWS.S3;
 
-  constructor(private region: string, private bucketName: string) {
+  constructor(public readonly region: string, public readonly bucketName: string) {
     this.s3 = new AWS.S3({ region });
   }
 

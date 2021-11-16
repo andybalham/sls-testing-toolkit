@@ -6,7 +6,7 @@ export default class S3TestClient {
   //
   readonly db: AWS.DynamoDB.DocumentClient;
 
-  constructor(private region: string, private tableName: string) {
+  constructor(public readonly region: string, public readonly tableName: string) {
     this.db = new AWS.DynamoDB.DocumentClient({ region });
   }
 

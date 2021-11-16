@@ -10,7 +10,7 @@ export default class EventBridgeTestClient {
   //
   readonly eventBridge: AWS.EventBridge;
 
-  constructor(region: string, public eventBusArn: string) {
+  constructor(public readonly region: string, public readonly eventBusArn: string) {
     this.eventBridge = new AWS.EventBridge({ region });
   }
 

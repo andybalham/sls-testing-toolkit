@@ -7,7 +7,7 @@ export default class SNSTestClient {
   //
   readonly sns: AWS.SNS;
 
-  constructor(region: string, private topicArn: string) {
+  constructor(public readonly region: string, public readonly topicArn: string) {
     this.sns = new AWS.SNS({ region });
   }
 

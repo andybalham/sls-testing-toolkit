@@ -9,7 +9,7 @@ export default class SQSTestClient {
   //
   readonly sqs: SQS;
 
-  constructor(region: string, private queueUrl: string) {
+  constructor(public readonly region: string, public readonly queueUrl: string) {
     this.sqs = new SQS({ region });
   }
 
