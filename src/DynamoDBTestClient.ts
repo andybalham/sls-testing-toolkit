@@ -2,7 +2,7 @@
 import AWS from 'aws-sdk';
 import { clearAllItems, getItem } from './dynamoDb';
 
-export default class S3TestClient {
+export default class DynamoDBTestClient {
   //
   readonly db: AWS.DynamoDB.DocumentClient;
 
