@@ -1,5 +1,6 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
+/* eslint-disable import/no-extraneous-dependencies */
 import AWS from 'aws-sdk';
+import { InvokeAsyncResponse } from 'aws-sdk/clients/lambda';
 
 export default class LambdaTestClient {
   //
@@ -25,5 +26,19 @@ export default class LambdaTestClient {
     }
 
     return undefined;
+  }
+
+  async asyncInvokeAsync(request?: Record<string, any>): Promise<InvokeAsyncResponse> {
+    //
+    const lambdaInvokeArgs = { InvokeArgs: JSON.stringify(request || {}) };
+
+    const params = {
+      FunctionName: this.functionName,
+      ...lambdaInvokeArgs,
+    };
+
+    const asyncResponse = await this.lambda.invokeAsync(params).promise();
+
+    return asyncResponse;
   }
 }
